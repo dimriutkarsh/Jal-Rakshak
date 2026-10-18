@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JalRakshak - Login Portal</title>
+    <!-- Google Fonts (Including Hindi support via Noto Sans Devanagari) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* Jal Jeevan Mission Theme Colors */
+            --primary-blue: #0E5A8A; 
+            --dark-blue: #0B3C5D;
+            --gov-blue: #001f3f; 
+            --accent-orange: #F37021; 
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --bg-light: #f8fafc;
+            --border-color: #e2e8f0;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--bg-light);
+        }
+
+        /* --- LEFT SIDE: Image Slider --- */
+        .left-panel {
+            width: 45%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #000; /* Fallback */
+        }
+
+        .slide-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out, transform 8s ease-out;
+            transform: scale(1.05);
+            z-index: 1;
+        }
+
+        .slide-bg.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Subtle gradient to ensure text readability without heavy blue tint */
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Dark gradient only at the bottom */
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 35%, rgba(0, 0, 0, 0) 70%);
+            z-index: 2;
+        }
+
+        /* Top Left Back Button */
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 45px;
+            height: 45px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--primary-blue);
+            text-decoration: none;
+            z-index: 10;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .back-btn:hover {
+            background-color: var(--white);
+            transform: translateX(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Bottom Content on Image */
+        .left-content {
+            position: relative;
+            z-index: 10;
+            padding: 60px;
+            color: var(--white);
+            margin-top: auto;
+        }
+
+        .left-content h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease 0.3s;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .left-content p {
+            font-size: 1.1rem;
+            font-weight: 400;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease 0.5s;
+            max-width: 95%;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .left-panel.active .left-content h1,
+        .left-panel.active .left-content p {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Slider Dots */
+        .slider-dots {
+            position: relative;
+            z-index: 10;
+            padding: 0 60px 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background-color: var(--white);
+            width: 25px;
+            border-radius: 10px;
+        }
+
+        /* --- RIGHT SIDE: Login Form --- */
+        .right-panel {
+            width: 55%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--white);
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 40px;
+            right: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-blue);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--gov-blue);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--accent-orange);
+        }
+
+        /* Form Container */
+        .form-wrapper {
+            margin: auto;
+            width: 100%;
+            max-width: 460px;
+            padding: 100px 20px 40px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-header {
+            margin-bottom: 25px;
+        }
+
+        .form-header h2 {
+            font-size: 2.2rem;
+            color: var(--gov-blue);
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .form-header h2 span {
+            color: var(--accent-orange);
+        }
+
+        .form-header p {
+            color: var(--text-gray);
+            font-size: 1rem;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        /* Role Selection Badges */
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .role-btn {
+            padding: 10px 18px;
+            border: none;
+            background: transparent;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .role-btn i {
+            font-size: 1rem;
+        }
+
+        .role-btn.active {
+            background: var(--white);
+            color: var(--primary-blue);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .role-btn:hover:not(.active) {
+            color: var(--gov-blue);
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--gov-blue);
+            margin-bottom: 8px;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .form-group label i {
+            color: var(--accent-orange);
+            font-size: 1rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+            background-color: var(--white);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(14, 90, 138, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary-blue);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .remember-me input {
+            accent-color: var(--primary-blue);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .forgot-password {
+            color: var(--accent-orange);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .forgot-password:hover {
+            color: #d65a14;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(14, 90, 138, 0.2);
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--dark-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(14, 90, 138, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        /* Mock Credentials Box */
+        .mock-credentials {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--accent-orange);
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .mock-credentials strong {
+            color: var(--gov-blue);
+        }
+
+        /* Security Badges */
+        .security-badges {
+            margin-top: 35px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+
+        .security-badges div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .security-badges i {
+            color: #10b981; 
+        }
+
+        /* Utility Class to Hide Elements */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .left-panel {
+                display: none;
+            }
+            .right-panel {
+                width: 100%;
+            }
+            .logo-container {
+                top: 20px;
+                right: 20px;
+            }
+            .form-wrapper {
+                padding-top: 80px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-wrapper {
+                padding: 80px 15px 20px;
+            }
+            .form-header h2 {
+                font-size: 1.8rem;
+            }
+            .logo-text {
+                font-size: 1.2rem;
+            }
+            .role-selector {
+                flex-direction: column;
+                width: 100%;
+            }
+            .role-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LEFT PANEL: Image Slider & Branding -->
+    <div class="left-panel active" id="leftPanel">
+        <!-- Background Images for Slider -->
+        <div class="slide-bg active" style="background-image: url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=2070&auto=format&fit=crop');"></div>
+        <div class="slide-bg" style="background-image: url('https://images.unsplash.com/photo-1538300342682-cf57afb97285?q=80&w=2070&auto=format&fit=crop');"></div>
+        <div class="slide-bg" style="background-image: url('https://images.unsplash.com/photo-1594398901394-4e34939a4fd0?q=80&w=2070&auto=format&fit=crop');"></div>
+
+        <!-- Back Button linked to index.html -->
+        <a href="index.html" class="back-btn" title="Back to Home"><i class="fas fa-arrow-left"></i></a>
+
+        <!-- Content over Image (Hindi Text) -->
+        <div class="left-content">
+            <h1>हर घर जल, सुरक्षित जल</h1>
+            <p>ग्रामीण भारत में वास्तविक समय में जल गुणवत्ता की निगरानी और सामुदायिक भागीदारी के माध्यम से सुरक्षित पेयजल सुनिश्चित करना।</p>
+        </div>
+
+        <!-- Slider Navigation Dots -->
+        <div class="slider-dots">
+            <div class="dot active" onclick="currentSlide(0)"></div>
+            <div class="dot" onclick="currentSlide(1)"></div>
+            <div class="dot" onclick="currentSlide(2)"></div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL: Login Form -->
+    <div class="right-panel">
+        <!-- Logo -->
+        <div class="logo-container">
+            <div class="logo-icon"><i class="fas fa-tint"></i></div>
+            <div class="logo-text">Jal<span>Rakshak</span></div>
+        </div>
+
+        <!-- Form Wrapper -->
+        <div class="form-wrapper">
+            <div class="form-header">
+                <h2>Welcome <span>Back</span></h2>
+                <p>कृपया साइन इन करने के लिए अपना विवरण दर्ज करें</p>
+                
+                <!-- THREE BUTTONS: Role Selection -->
+                <div class="role-selector">
+                    <button type="button" class="role-btn active" onclick="selectRole(this, 'Admin')"><i class="fas fa-user-shield"></i> Admin</button>
+                    <button type="button" class="role-btn" onclick="selectRole(this, 'Officer')"><i class="fas fa-user-tie"></i> Officer</button>
+                    <button type="button" class="role-btn" onclick="selectRole(this, 'User')"><i class="fas fa-user"></i> User</button>
+                </div>
+            </div>
+
+            <!-- Mock Credentials Display Area -->
+            <div id="mockCredentials" class="mock-credentials">
+                <strong>Prototype Note:</strong> Use Username: <b>admin</b> and Password: <b>admin123</b>
+            </div>
+
+            <!-- Unified Login Form for ALL Roles (Admin, Officer, User) -->
+            <form id="loginForm" action="#" method="POST" onsubmit="handleLogin(event)">
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> उपयोगकर्ता नाम (Username)</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> पासवर्ड (Password)</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="form-actions">
+                    <label class="remember-me">
+                        <input type="checkbox"> मुझे याद रखें
+                    </label>
+                    <a href="#" class="forgot-password">पासवर्ड भूल गए?</a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <!-- Security Badges -->
+            <div class="security-badges">
+                <div><i class="fas fa-lock"></i> सुरक्षित लॉगिन</div>
+                <div><i class="fas fa-shield-alt"></i> SSL संरक्षित</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // --- Image Slider Logic ---
+        let slideIndex = 0;
+        const slides = document.querySelectorAll('.slide-bg');
+        const dots = document.querySelectorAll('.dot');
+        const leftPanel = document.getElementById('leftPanel');
+        let slideInterval;
+
+        function showSlide(n) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            leftPanel.classList.remove('active');
+
+            slideIndex = (n + slides.length) % slides.length;
+            slides[slideIndex].classList.add('active');
+            dots[slideIndex].classList.add('active');
+
+            setTimeout(() => {
+                leftPanel.classList.add('active');
+            }, 100);
+        }
+
+        function currentSlide(n) {
+            clearInterval(slideInterval);
+            showSlide(n);
+            startAutoSlide();
+        }
+
+        function nextSlide() {
+            showSlide(slideIndex + 1);
+        }
+
+        function startAutoSlide() {
+            // Increased speed: changes every 3 seconds
+            slideInterval = setInterval(nextSlide, 3000); 
+        }
+
+        startAutoSlide();
+
+
+        // --- Password Visibility Toggle ---
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.toggle-password');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+
+        // --- Role Selection Logic ---
+        let currentRole = 'Admin'; // Default role
+
+        function selectRole(button, role) {
+            currentRole = role;
+            
+            // UI Update for buttons
+            const buttons = document.querySelectorAll('.role-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const usernameInput = document.getElementById('username');
+            const mockCredentials = document.getElementById('mockCredentials');
+
+            // Update placeholders and mock credentials based on role
+            if (role === 'Admin') {
+                usernameInput.placeholder = "Enter Admin ID";
+                mockCredentials.innerHTML = "<strong>Prototype Note:</strong> Use Username: <b>admin</b> and Password: <b>admin123</b>";
+            } else if (role === 'Officer') {
+                usernameInput.placeholder = "Enter Officer ID";
+                mockCredentials.innerHTML = "<strong>Prototype Note:</strong> Use Username: <b>officer</b> and Password: <b>officer123</b>";
+            } else if (role === 'User') {
+                usernameInput.placeholder = "Enter User ID / Mobile No.";
+                mockCredentials.innerHTML = "<strong>Prototype Note:</strong> Use Username: <b>user</b> and Password: <b>user123</b>";
+            }
+        }
+
+        // --- Form Submission & Redirection ---
+        function handleLogin(event) {
+            event.preventDefault(); // Prevent actual form submission
+
+            // Mock Redirection URLs based on the selected role
+            const adminUrl = "https://jaljeevanmission.gov.in/"; 
+            const officerUrl = "https://ejalshakti.gov.in/"; 
+            const userUrl = "https://jaljeevanmission.gov.in/citizen-corner"; 
+
+            if (currentRole === 'Admin') {
+                window.location.href = adminUrl;
+            } else if (currentRole === 'Officer') {
+                window.location.href = officerUrl;
+            } else if (currentRole === 'User') {
+                window.location.href = userUrl;
+            }
+        }
+    </script>
+</body>
+</html>

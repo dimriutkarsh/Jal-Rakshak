@@ -1,0 +1,2852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JalRakshak — Water Quality Monitoring | Jal Jeevan Mission</title>
+  <meta name="description" content="JalRakshak — Intelligent Water Quality Monitoring & Management platform for the Jal Jeevan Mission.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* =========================================
+       CSS VARIABLES & GLOBAL RESET
+       ========================================= */
+    :root {
+      --primary-50: #e7f3fb;
+      --primary-100: #c2e0f3;
+      --primary-300: #5eaad6;
+      --primary-500: #0077b6;
+      --primary-600: #005f8a;
+      --primary-700: #003f5c;
+      --primary-800: #003366;
+      --primary-900: #001f3f;
+
+      --aqua-300: #00b4d8;
+      --aqua-500: #0096c7;
+      --aqua-700: #0077a8;
+
+      --cyan-light: #caf0f8;
+      --cyan-200: #90e0ef;
+
+      --saffron-500: #ff9933;
+      --saffron-600: #e67e00;
+      --saffron-700: #cc6600;
+
+      --status-safe: #2ecc71;
+      --status-safe-bg: #d5f5e3;
+      --status-warning: #f39c12;
+      --status-warning-bg: #fef9e7;
+      --status-critical: #e74c3c;
+      --status-critical-bg: #fdedec;
+      --status-info: #3498db;
+      --status-info-bg: #ebf5fb;
+
+      --white: #ffffff;
+      --neutral-50: #f7fafc;
+      --neutral-100: #f0f4f8;
+      --neutral-200: #e2e8f0;
+      --neutral-300: #cbd5e0;
+      --neutral-400: #a0aec0;
+      --neutral-500: #718096;
+      --neutral-600: #4a5568;
+      --neutral-700: #2d3748;
+      --neutral-800: #1a202c;
+      --neutral-900: #0d1117;
+
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-xxl: 48px;
+      --space-xxxl: 64px;
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-hindi: 'Noto Sans Devanagari', sans-serif;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+
+      --t-fast: 0.2s ease;
+      --t-normal: 0.3s ease;
+      --t-slow: 0.5s ease;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.10);
+      --shadow-xl: 0 20px 50px rgba(0,0,0,0.12);
+
+      /* === NEUMORPHISM & GLASSMORPHISM TOKENS === */
+      --neu-bg: #e8eef3;
+      --neu-shadow-dark: rgba(163, 177, 198, 0.55);
+      --neu-shadow-light: rgba(255, 255, 255, 0.95);
+      --neu-shadow-dark-inset: rgba(163, 177, 198, 0.45);
+      --neu-shadow-light-inset: rgba(255, 255, 255, 0.85);
+
+      --glass-bg: rgba(255, 255, 255, 0.42);
+      --glass-bg-strong: rgba(255, 255, 255, 0.62);
+      --glass-border: rgba(255, 255, 255, 0.65);
+      --glass-border-soft: rgba(255, 255, 255, 0.4);
+      --glass-shadow: 0 8px 32px rgba(31, 76, 122, 0.12);
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      color: var(--neutral-700);
+      background-color: var(--neutral-50);
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--primary-800);
+      margin-bottom: var(--space-md);
+    }
+
+    p { margin-bottom: var(--space-md); }
+    a { text-decoration: none; color: var(--primary-500); transition: color var(--t-fast); }
+    a:hover { color: var(--primary-700); }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--space-md);
+    }
+
+    section { padding: var(--space-xxxl) 0; }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: var(--space-xxl);
+    }
+
+    .section-header h2 {
+      font-size: 2rem;
+      color: var(--primary-800);
+      position: relative;
+      display: inline-block;
+      padding-bottom: var(--space-sm);
+    }
+
+    .section-header h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(to right, var(--aqua-300), var(--primary-600));
+      border-radius: 2px;
+    }
+
+    .section-header p {
+      color: var(--neutral-600);
+      max-width: 650px;
+      margin: var(--space-md) auto 0;
+    }
+
+    /* Reveal Animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =========================================
+       HEADER & NOTICE BAR
+       ========================================= */
+    .notice-bar { display: flex; align-items: stretch; background: var(--white); border-bottom: 1px solid var(--neutral-200); overflow: hidden; }
+    .notice-label { background: #d32f2f; color: var(--white); font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; padding: 8px 18px; display: flex; align-items: center; flex-shrink: 0; text-transform: uppercase; }
+    .notice-ticker { flex: 1; overflow: hidden; position: relative; display: flex; align-items: center; }
+    .notice-track { display: flex; align-items: center; white-space: nowrap; animation: notice-scroll 40s linear infinite; padding-left: 100%; }
+    .notice-track:hover { animation-play-state: paused; }
+    @keyframes notice-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+    .notice-item { font-size: 0.85rem; color: var(--neutral-700); padding: 0 var(--space-sm); }
+    .notice-new { background: #d32f2f; color: var(--white); font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-right: 4px; }
+
+    .govt-bar { background: var(--primary-900); color: var(--white); padding: var(--space-xs) 0; font-size: 0.8rem; border-bottom: 2px solid var(--saffron-500); }
+    .govt-bar-inner { display: flex; justify-content: space-between; align-items: center; padding-top: var(--space-xs); padding-bottom: var(--space-xs); }
+    .govt-bar-left { display: flex; align-items: center; gap: var(--space-sm); }
+    .govt-bar-text { font-weight: 600; letter-spacing: 0.3px; }
+    .goi-en { font-weight: 500; color: var(--cyan-200); }
+    .govt-bar-right { display: flex; align-items: center; gap: var(--space-sm); }
+    .govt-bar-right a { color: var(--cyan-200); font-weight: 500; }
+    .govt-bar-right a:hover { color: var(--white); }
+    .govt-divider { color: var(--neutral-500); }
+
+    #main-header { background: var(--white); box-shadow: var(--shadow-sm); border-bottom: 1px solid var(--neutral-200); position: sticky; top: 0; z-index: 1000; }
+    .header-inner { display: flex; justify-content: space-between; align-items: center; padding-top: var(--space-md); padding-bottom: var(--space-md); max-width: 100%; padding-left: var(--space-lg); padding-right: var(--space-lg); }
+    .logo-block { display: flex; align-items: center; gap: var(--space-md); }
+    .logo-name { font-size: 1.5rem; font-weight: 800; color: var(--primary-700); margin-bottom: 0; line-height: 1.1; }
+    .logo-subtitle { font-size: 0.7rem; color: var(--neutral-600); margin-bottom: 0; line-height: 1.3; font-weight: 500; font-family: var(--font-hindi); }
+    .logo-subtitle-sm { font-size: 0.65rem; color: var(--neutral-500); margin-bottom: 0; line-height: 1.3; font-family: var(--font-hindi); }
+
+    nav ul { list-style: none; display: flex; align-items: center; gap: var(--space-md); }
+    nav a { text-decoration: none; color: var(--neutral-700); font-weight: 500; font-size: 0.95rem; padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); transition: all var(--t-fast); position: relative; }
+    nav a:hover { color: var(--primary-600); background: var(--primary-50); }
+    nav a.active { color: var(--primary-700); font-weight: 600; border-bottom: 3px solid var(--primary-600); border-radius: 0; }
+
+/* ===== LOGIN BUTTON — ENHANCED FIRST-VISIT ATTENTION ===== */
+.login-btn {
+  background: linear-gradient(135deg, var(--primary-600), var(--aqua-500)) !important;
+  color: var(--white) !important;
+  padding: var(--space-sm) var(--space-lg) !important;
+  border-radius: var(--radius-md) !important;
+  font-weight: 600 !important;
+  border: none !important;
+  position: relative;
+  z-index: 10;
+  animation: login-glow-cycle 2.4s ease-in-out infinite, login-bounce 2s ease-in-out infinite;
+  transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+@keyframes login-glow-cycle {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(255, 215, 0, 1), 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 200, 0, 0.55), 0 0 100px rgba(255, 180, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(0, 180, 216, 1), 0 0 30px rgba(0, 180, 216, 0.85), 0 0 60px rgba(0, 150, 200, 0.6), 0 0 100px rgba(0, 119, 182, 0.35);
+  }
+}
+
+@keyframes login-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.login-btn:hover {
+  background: linear-gradient(135deg, var(--primary-800), var(--aqua-700)) !important;
+  color: var(--white) !important;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 30px rgba(255, 215, 0, 0.85), 0 0 60px rgba(0, 180, 216, 0.5) !important;
+  animation: none;
+}
+
+/* ===== MAIN DASHBOARD HINT — POSITION FIX ===== */
+.login-hint-arrow {
+  position: absolute !important;
+  right: 0 !important;
+  left: auto !important;
+  bottom: calc(100% + 12px) !important;
+  top: auto !important;
+  transform: none !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  box-sizing: border-box;
+  z-index: 99999;
+  pointer-events: none;
+  white-space: normal;
+  animation: hint-float-fixed 1.6s ease-in-out infinite;
+}
+
+.login-hint-arrow svg {
+  display: none !important;
+}
+
+.login-hint-arrow .hint-text {
+  display: inline-block;
+  max-width: calc(100vw - 40px);
+  box-sizing: border-box;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
+  color: #7a4a00;
+  background: linear-gradient(135deg, #ffe066, #ffb700);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #ffcc33;
+  box-shadow: 0 4px 14px rgba(255, 180, 0, 0.55);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@keyframes hint-float-fixed {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.login-hint-arrow.hidden {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-btn, .login-hint-arrow { animation: none !important; }
+  .login-btn { transition: none !important; }
+}
+
+.mobile-menu-button {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--primary-700);
+  padding: var(--space-xs);
+}
+
+@media (max-width: 768px) {
+  .login-hint-arrow { display: none !important; }
+}
+
+    /* =========================================
+       HERO SLIDER
+       ========================================= */
+    .hero-section { position: relative; height: 560px; overflow: hidden; padding: 0; }
+    .hero-slider { position: relative; width: 100%; height: 100%; }
+    .hero-slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.2s ease-in-out; display: flex; align-items: center; }
+    .hero-slide.active { opacity: 1; }
+    .hero-shade { position: absolute; top: 0; left: 0; width: 60%; height: 100%; background: linear-gradient(to right, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0) 100%); z-index: 1; }
+    .hero-content { position: relative; z-index: 2; max-width: 560px; padding: var(--space-lg); text-align: left; }
+    .hero-content h2 { font-family: var(--font-serif); font-size: 3rem; color: var(--white); margin-bottom: var(--space-sm); text-shadow: 0 2px 12px rgba(0,0,0,0.4); line-height: 1.15; }
+    .hero-subtitle { font-size: 1.25rem; color: var(--cyan-200); font-weight: 600; margin-bottom: var(--space-md); }
+    .hero-desc { font-size: 1.05rem; color: rgba(255,255,255,0.88); margin-bottom: var(--space-xl); max-width: 540px; line-height: 1.55; }
+    .hero-cta { display: flex; gap: var(--space-md); flex-wrap: wrap; }
+    .cta-button { display: inline-block; padding: var(--space-md) var(--space-xl); border-radius: var(--radius-md); font-weight: 600; font-size: 1rem; text-align: center; transition: all var(--t-normal); cursor: pointer; }
+    .cta-button.primary { background-color: var(--primary-600); color: var(--white); border: 2px solid var(--primary-600); }
+    .cta-button.primary:hover { background-color: var(--primary-800); border-color: var(--primary-800); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .cta-button.secondary { background-color: transparent; color: var(--white); border: 2px solid var(--white); }
+    .cta-button.secondary:hover { background-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+    
+    .slider-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); color: var(--white); width: 48px; height: 48px; border-radius: 50%; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background var(--t-fast); z-index: 3; backdrop-filter: blur(4px); }
+    .slider-nav:hover { background: rgba(255,255,255,0.35); }
+    .slider-nav.prev { left: var(--space-md); }
+    .slider-nav.next { right: var(--space-md); }
+    .slider-indicators { position: absolute; bottom: var(--space-lg); left: 50%; transform: translateX(-50%); display: flex; gap: var(--space-sm); z-index: 3; }
+    .slider-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; transition: background var(--t-fast), transform var(--t-fast); border: 2px solid rgba(255,255,255,0.3); }
+    .slider-dot.active { background: var(--white); transform: scale(1.2); }
+    .slider-pause { position: absolute; top: var(--space-lg); right: var(--space-lg); background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; transition: background var(--t-fast); backdrop-filter: blur(4px); }
+    .slider-pause:hover { background: rgba(0,0,0,0.5); }
+
+    /* =========================================
+       ABOUT JJM SECTION — NEUMORPHIC CARD
+       ========================================= */
+    .about-jjm-section { 
+      background: linear-gradient(135deg, #eef3f8 0%, #e3eaf2 100%);
+      position: relative;
+    }
+    .about-grid-new { 
+      display: grid; 
+      grid-template-columns: 1.2fr 0.8fr; 
+      gap: var(--space-xxl); 
+      align-items: center; 
+      padding: var(--space-xl);
+      background: var(--neu-bg);
+      border-radius: var(--radius-xl);
+      box-shadow: 
+        12px 12px 28px var(--neu-shadow-dark),
+        -12px -12px 28px var(--neu-shadow-light);
+    }
+    .about-text-content p { font-size: 1.05rem; color: var(--neutral-600); line-height: 1.7; margin-bottom: var(--space-lg); }
+    .about-list { list-style: none; padding: 0; margin-bottom: var(--space-xl); }
+    .about-list li { display: flex; align-items: center; gap: var(--space-sm); font-weight: 600; color: var(--primary-800); font-size: 1.1rem; margin-bottom: var(--space-sm); }
+    .about-list li::before { content: '■'; color: var(--saffron-500); font-size: 0.8rem; }
+    
+    .circular-data-viz { display: flex; justify-content: center; position: relative; }
+    .circle-wrapper { 
+      position: relative; 
+      width: 320px; 
+      height: 320px; 
+      border-radius: 50%; 
+      background: conic-gradient(var(--primary-600) 0% 81.81%, var(--neutral-200) 81.81% 100%); 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      box-shadow: 
+        10px 10px 24px var(--neu-shadow-dark),
+        -10px -10px 24px var(--neu-shadow-light);
+    }
+    .circle-inner { 
+      width: 260px; 
+      height: 260px; 
+      background: var(--neu-bg);
+      border-radius: 50%; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center; 
+      align-items: center; 
+      text-align: center; 
+      padding: var(--space-md); 
+      box-shadow: 
+        inset 6px 6px 14px var(--neu-shadow-dark-inset),
+        inset -6px -6px 14px var(--neu-shadow-light-inset);
+    }
+    .circle-inner h4 { font-size: 1.1rem; color: var(--primary-700); margin-bottom: var(--space-xs); line-height: 1.3; }
+    .circle-inner .big-number { font-size: 2.2rem; font-weight: 800; color: var(--saffron-600); line-height: 1; margin-bottom: var(--space-xs); }
+    .circle-inner .date-text { font-size: 0.9rem; color: var(--neutral-500); font-weight: 600; }
+    .circle-inner .percentage { font-size: 1.2rem; font-weight: 700; color: var(--primary-600); margin-top: var(--space-xs); }
+
+    /* =========================================
+       GUIDELINES / MANUALS — GLASS + NEU CARDS
+       ========================================= */
+    .guidelines-section { 
+      background: linear-gradient(145deg, #e3edf7 0%, #d4e3f0 50%, #c9dcec 100%); 
+      overflow: hidden; 
+      padding: var(--space-xxxl) 0;
+      position: relative;
+    }
+    .guidelines-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(0,180,216,0.08) 0%, transparent 60%),
+                  radial-gradient(circle at 80% 70%, rgba(0,119,182,0.06) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .guidelines-section .section-header h2 { color: var(--primary-800); }
+    .guidelines-section .section-header h2::after { background: linear-gradient(to right, var(--saffron-500), var(--aqua-300)); }
+    .guidelines-section .section-header p { color: var(--primary-700); }
+    
+    .marquee-wrapper { position: relative; width: 100%; overflow: hidden; padding: var(--space-md) 0; }
+    .marquee-track { display: flex; gap: var(--space-lg); width: max-content; animation: scroll-left 35s linear infinite; }
+    .marquee-track:hover { animation-play-state: paused; }
+    @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    
+    .guideline-card { 
+      width: 300px; 
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius-lg); 
+      box-shadow: 
+        8px 8px 20px rgba(163, 177, 198, 0.4),
+        -8px -8px 20px rgba(255, 255, 255, 0.85),
+        inset 0 1px 0 rgba(255,255,255,0.7);
+      overflow: hidden; 
+      transition: transform var(--t-normal), box-shadow var(--t-normal), background var(--t-normal); 
+      flex-shrink: 0; 
+      display: flex; 
+      flex-direction: column; 
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    .guideline-card:hover { 
+      transform: translateY(-10px); 
+      box-shadow: 
+        14px 14px 32px rgba(163, 177, 198, 0.5),
+        -14px -14px 32px rgba(255, 255, 255, 0.95),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+      background: rgba(255, 255, 255, 0.75);
+    }
+    .guideline-card img { width: 100%; height: 280px; object-fit: cover; border-bottom: 1px solid rgba(255,255,255,0.5); }
+    .guideline-card .card-content { padding: var(--space-lg); text-align: center; flex: 1; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.35); backdrop-filter: blur(6px); }
+    .guideline-card h4 { font-size: 1rem; color: var(--primary-800); margin-bottom: 0; line-height: 1.5; }
+
+    /* =========================================
+       NATIONAL STATISTICS — NEUMORPHIC CARDS
+       ========================================= */
+    .nat-stats-section {
+      background: linear-gradient(175deg, #e4edf5 0%, #d6e3ef 30%, #eef5fb 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .nat-stats-section::before {
+      content: '';
+      position: absolute;
+      top: -60%; right: -15%;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,180,216,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .nat-stats-section::after {
+      content: '';
+      position: absolute;
+      bottom: -40%; left: -10%;
+      width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(255,153,51,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .nat-stats-section .section-header h2 { color: var(--primary-800); }
+    .nat-stats-section .section-header h2::after { background: linear-gradient(to right, var(--saffron-500), var(--aqua-300)); }
+    .nat-stats-section .section-header p { color: var(--primary-700); }
+    
+    .nat-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-lg); position: relative; z-index: 1; }
+    .nat-stat-card {
+      background: var(--neu-bg);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl) var(--space-lg);
+      text-align: center;
+      transition: all var(--t-normal);
+      box-shadow: 
+        10px 10px 24px var(--neu-shadow-dark),
+        -10px -10px 24px var(--neu-shadow-light);
+      border: 1px solid rgba(255,255,255,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    .nat-stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 4px;
+      background: linear-gradient(to right, var(--primary-500), var(--aqua-300));
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .nat-stat-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 
+        14px 14px 32px var(--neu-shadow-dark),
+        -14px -14px 32px var(--neu-shadow-light);
+    }
+    .nat-stat-card .stat-icon {
+      width: 56px; height: 56px;
+      margin: 0 auto var(--space-md);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      font-size: 1.5rem;
+      color: var(--primary-600);
+      transition: transform var(--t-normal);
+      box-shadow: 
+        4px 4px 10px var(--neu-shadow-dark-inset),
+        -4px -4px 10px var(--neu-shadow-light-inset);
+    }
+    .nat-stat-card:hover .stat-icon { 
+      transform: scale(1.1); 
+      color: var(--saffron-600);
+    }
+    .nat-stat-card .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--primary-800);
+      line-height: 1;
+      margin-bottom: var(--space-xs);
+    }
+    .nat-stat-card .stat-label {
+      font-size: 0.9rem;
+      color: var(--neutral-600);
+      font-weight: 500;
+      margin-bottom: 0;
+    }
+    .nat-stat-card .stat-sub {
+      font-size: 0.75rem;
+      color: var(--aqua-700);
+      font-weight: 600;
+      margin-top: var(--space-xs);
+    }
+
+    /* =========================================
+       WATER QUALITY DASHBOARD — NEU + GLASS
+       ========================================= */
+    .dashboard-section { 
+      background: linear-gradient(180deg, #eaf2f9 0%, #dce9f3 100%);
+      position: relative;
+    }
+    
+    .dashboard-state-selector {
+      display: flex;
+      justify-content: center;
+      margin-bottom: var(--space-xl);
+      gap: var(--space-md);
+      align-items: center;
+    }
+    
+    .dashboard-state-selector select {
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.7);
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--primary-800);
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
+      box-shadow: 
+        4px 4px 12px rgba(163, 177, 198, 0.4),
+        -4px -4px 12px rgba(255, 255, 255, 0.8);
+    }
+    
+    .dashboard-state-selector select:focus {
+      border-color: var(--primary-600);
+      box-shadow: 
+        0 0 0 4px rgba(0,119,182,0.12),
+        4px 4px 12px rgba(163, 177, 198, 0.4),
+        -4px -4px 12px rgba(255, 255, 255, 0.8);
+    }
+
+    .dashboard-grid-new { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-md); margin-bottom: var(--space-xl); }
+    
+    /* ========== NEUMORPHIC PARAMETER CARDS ========== */
+    .param-card-new { 
+      background: var(--neu-bg);
+      border-radius: var(--radius-lg); 
+      padding: var(--space-lg) var(--space-md); 
+      text-align: center; 
+      border: 1px solid rgba(255,255,255,0.55); 
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        8px 8px 20px var(--neu-shadow-dark),
+        -8px -8px 20px var(--neu-shadow-light);
+    }
+    
+    .param-card-new:hover { 
+      transform: translateY(-5px); 
+      box-shadow: 
+        12px 12px 28px var(--neu-shadow-dark),
+        -12px -12px 28px var(--neu-shadow-light);
+    }
+    
+    .param-card-new .label { font-size: 0.85rem; color: var(--neutral-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--space-xs); }
+    
+    .param-card-new .value { 
+      font-size: 2rem; 
+      font-weight: 800; 
+      color: var(--primary-800); 
+      line-height: 1;
+      margin-bottom: var(--space-xs);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    
+    .param-card-new .unit { font-size: 0.8rem; color: var(--neutral-500); font-weight: 500; margin-bottom: var(--space-sm); }
+    
+    .param-card-new .status { 
+      display: inline-block; 
+      padding: 4px 12px; 
+      border-radius: 20px; 
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      text-transform: uppercase;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    
+    .status.safe { background: var(--status-safe-bg); color: var(--status-safe); }
+    .status.warning { background: var(--status-warning-bg); color: var(--status-warning); }
+    .status.critical { background: var(--status-critical-bg); color: var(--status-critical); }
+
+    .data-changing .value {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    /* Chart containers */
+    .dashboard-charts-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--space-lg); margin-top: var(--space-xl); }
+    
+    /* ========== GLASSMORPHIC CHART CARDS ========== */
+    .chart-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      border: 1px solid var(--glass-border);
+      box-shadow: 
+        var(--glass-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      transition: box-shadow var(--t-normal), background var(--t-normal);
+    }
+    .chart-card:hover { 
+      box-shadow: 
+        0 12px 40px rgba(31, 76, 122, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      background: var(--glass-bg-strong);
+    }
+    .chart-card h3 {
+      font-size: 1.1rem;
+      color: var(--primary-700);
+      margin-bottom: var(--space-md);
+      border-bottom: 2px solid rgba(0,119,182,0.12);
+      padding-bottom: var(--space-sm);
+    }
+    .chart-canvas-wrapper {
+      position: relative;
+      height: 240px;
+    }
+
+    /* =========================================
+       SCHEMES & PROGRAMS — NEUMORPHIC CARDS
+       ========================================= */
+    .schemes-section { 
+      background: linear-gradient(180deg, #e4edf5 0%, #d6e3ef 40%, #e4edf5 100%); 
+      position: relative;
+    }
+    .schemes-section::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 120px;
+      background: linear-gradient(to top, #e4edf5, transparent);
+      pointer-events: none;
+    }
+    .schemes-section .section-header h2 { color: var(--primary-800); }
+    .schemes-section .section-header h2::after { background: linear-gradient(to right, var(--saffron-500), var(--aqua-300)); }
+    
+    .schemes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); position: relative; z-index: 1; }
+    
+    /* ========== NEUMORPHIC SCHEME CARDS ========== */
+    .scheme-card {
+      background: var(--neu-bg);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl) var(--space-lg);
+      box-shadow: 
+        10px 10px 24px var(--neu-shadow-dark),
+        -10px -10px 24px var(--neu-shadow-light);
+      transition: all var(--t-normal);
+      border: 1px solid rgba(255,255,255,0.55);
+      border-top: 4px solid var(--primary-500);
+      position: relative;
+      overflow: hidden;
+    }
+    .scheme-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 
+        14px 14px 32px var(--neu-shadow-dark),
+        -14px -14px 32px var(--neu-shadow-light);
+      border-top-color: var(--saffron-500);
+    }
+    .scheme-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 3px;
+      background: linear-gradient(to right, var(--primary-600), var(--aqua-300));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--t-slow);
+    }
+    .scheme-card:hover::after { transform: scaleX(1); }
+    .scheme-icon {
+      width: 54px; height: 54px;
+      border-radius: var(--radius-md);
+      background: var(--neu-bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      color: var(--primary-600);
+      margin-bottom: var(--space-md);
+      transition: all var(--t-normal);
+      box-shadow: 
+        inset 4px 4px 10px var(--neu-shadow-dark-inset),
+        inset -4px -4px 10px var(--neu-shadow-light-inset);
+    }
+    .scheme-card:hover .scheme-icon {
+      color: var(--saffron-600);
+      transform: scale(1.08);
+    }
+    .scheme-card h4 { font-size: 1.15rem; color: var(--primary-800); margin-bottom: var(--space-sm); }
+    .scheme-card p { font-size: 0.9rem; color: var(--neutral-600); margin-bottom: var(--space-md); }
+    .scheme-progress-bar {
+      height: 6px;
+      background: rgba(0,119,182,0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: var(--space-xs);
+      box-shadow: inset 2px 2px 4px rgba(163, 177, 198, 0.4);
+    }
+    .scheme-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(to right, var(--primary-500), var(--aqua-300));
+      transition: width 1s ease;
+    }
+    .scheme-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--neutral-500);
+    }
+    .scheme-progress-label .pct { color: var(--primary-700); }
+
+    /* =========================================
+       STATE PROGRESS TABLE — GLASS WRAPPER
+       ========================================= */
+    .state-table-section { background: linear-gradient(180deg, #eaf2f9 0%, #e4edf5 100%); }
+    .state-table-section .section-header h2 { color: var(--primary-800); }
+    .state-table-section .section-header h2::after { background: linear-gradient(to right, var(--saffron-500), var(--aqua-300)); }
+    
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      box-shadow: 
+        10px 10px 28px var(--neu-shadow-dark),
+        -10px -10px 28px var(--neu-shadow-light);
+      border: 1px solid rgba(255,255,255,0.6);
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .state-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .state-table thead {
+      background: linear-gradient(135deg, #005f8a, #003f5c);
+      color: var(--white);
+    }
+    .state-table thead th {
+      padding: var(--space-md) var(--space-lg);
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .state-table tbody tr {
+      border-bottom: 1px solid rgba(0,119,182,0.08);
+      transition: background var(--t-fast);
+    }
+    .state-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.35); }
+    .state-table tbody tr:hover { background: rgba(232, 244, 253, 0.75); }
+    .state-table tbody tr:last-child { border-bottom: none; }
+    .state-table tbody td {
+      padding: var(--space-md) var(--space-lg);
+      color: var(--neutral-700);
+      white-space: nowrap;
+    }
+    .state-table .state-name { font-weight: 600; color: var(--primary-800); }
+    .mini-bar {
+      height: 6px;
+      width: 100px;
+      background: rgba(0,119,182,0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: var(--space-sm);
+      box-shadow: inset 1px 1px 3px rgba(163, 177, 198, 0.4);
+    }
+    .mini-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(to right, var(--primary-500), var(--aqua-300));
+    }
+    .table-search {
+      display: flex;
+      justify-content: center;
+      margin-bottom: var(--space-xl);
+    }
+    .table-search input {
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.7);
+      width: 350px;
+      max-width: 100%;
+      font-family: inherit;
+      outline: none;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 
+        4px 4px 12px rgba(163, 177, 198, 0.4),
+        -4px -4px 12px rgba(255, 255, 255, 0.8);
+    }
+    .table-search input:focus { 
+      border-color: var(--primary-600); 
+      box-shadow: 
+        0 0 0 4px rgba(0,119,182,0.12),
+        4px 4px 12px rgba(163, 177, 198, 0.4),
+        -4px -4px 12px rgba(255, 255, 255, 0.8);
+    }
+
+    /* =========================================
+       MAP SECTION — GLASS + NEU MIX
+       ========================================= */
+    .map-section { background: linear-gradient(180deg, #e4edf5 0%, #d6e3ef 100%); }
+    .map-section .section-header h2 { color: var(--primary-800); }
+    .map-section .section-header h2::after { background: linear-gradient(to right, var(--saffron-500), var(--aqua-300)); }
+    
+    .map-wrapper-new { 
+      display: flex; 
+      gap: var(--space-lg); 
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      padding: var(--space-lg); 
+      border-radius: var(--radius-lg); 
+      box-shadow: 
+        var(--glass-shadow),
+        10px 10px 28px var(--neu-shadow-dark),
+        -10px -10px 28px var(--neu-shadow-light),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--glass-border); 
+    }
+    .map-controls-new { flex: 0 0 250px; display: flex; flex-direction: column; gap: var(--space-md); }
+    .map-controls-new h3 { font-size: 1.1rem; color: var(--primary-800); margin-bottom: var(--space-xs); }
+    .map-controls-new select { 
+      width: 100%; 
+      padding: var(--space-sm); 
+      border: 1px solid rgba(255,255,255,0.7); 
+      border-radius: var(--radius-sm); 
+      font-family: inherit; 
+      cursor: pointer; 
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(8px);
+      box-shadow: 3px 3px 8px rgba(163, 177, 198, 0.35), -3px -3px 8px rgba(255,255,255,0.8);
+    }
+    .map-controls-new select:focus { 
+      outline: none; 
+      border-color: var(--primary-600); 
+      box-shadow: 0 0 0 3px rgba(0,119,182,0.1), 3px 3px 8px rgba(163, 177, 198, 0.35), -3px -3px 8px rgba(255,255,255,0.8);
+    }
+    .map-canvas-new { 
+      flex: 1; 
+      height: 450px; 
+      border-radius: var(--radius-md); 
+      overflow: hidden; 
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 
+        inset 4px 4px 10px var(--neu-shadow-dark-inset),
+        inset -4px -4px 10px var(--neu-shadow-light-inset);
+    }
+    .map-info-box {
+      margin-top: var(--space-md);
+      padding: var(--space-md);
+      background: var(--neu-bg);
+      border-radius: var(--radius-sm);
+      border-left: 4px solid var(--primary-600);
+      box-shadow: 
+        5px 5px 12px var(--neu-shadow-dark),
+        -5px -5px 12px var(--neu-shadow-light);
+    }
+    .map-info-box .info-title { font-weight: 700; color: var(--primary-800); font-size: 0.9rem; margin-bottom: var(--space-xs); }
+    .map-info-box .info-text { font-size: 0.85rem; color: var(--neutral-600); margin-bottom: 0; }
+    .map-stat-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; border-bottom: 1px solid rgba(0,119,182,0.1); }
+    .map-stat-row:last-child { border-bottom: none; }
+    .map-stat-row .label { color: var(--neutral-600); }
+    .map-stat-row .val { font-weight: 700; }
+
+    /* =========================================
+       REPORTS SECTION — NEUMORPHIC CARDS
+       ========================================= */
+    .reports-section { background: linear-gradient(180deg, #d6e3ef 0%, #e4edf5 50%, #eaf2f9 100%); }
+    .reports-section .section-header h2 { color: var(--primary-800); }
+    .reports-section .section-header h2::after { background: linear-gradient(to right, var(--saffron-500), var(--aqua-300)); }
+    
+    .reports-grid-new { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); }
+    
+    /* ========== NEUMORPHIC REPORT CARDS ========== */
+    .report-card-new { 
+      background: var(--neu-bg);
+      border-radius: var(--radius-lg); 
+      padding: var(--space-lg); 
+      border: 1px solid rgba(255,255,255,0.55); 
+      transition: transform var(--t-normal), box-shadow var(--t-normal); 
+      position: relative;
+      box-shadow: 
+        8px 8px 20px var(--neu-shadow-dark),
+        -8px -8px 20px var(--neu-shadow-light);
+      border-left: 4px solid var(--primary-500);
+    }
+    .report-card-new:hover { 
+      transform: translateY(-6px); 
+      box-shadow: 
+        12px 12px 28px var(--neu-shadow-dark),
+        -12px -12px 28px var(--neu-shadow-light);
+      border-left-color: var(--saffron-500); 
+    }
+    .report-card-new .report-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: var(--space-sm);
+    }
+    .report-badge.national { background: #d4ecfa; color: #005f8a; }
+    .report-badge.state { background: var(--status-warning-bg); color: var(--status-warning); }
+    .report-badge.infra { background: var(--status-info-bg); color: var(--status-info); }
+    .report-card-new h4 { color: var(--primary-700); font-size: 1.1rem; margin-bottom: var(--space-sm); }
+    .report-card-new p { font-size: 0.9rem; color: var(--neutral-600); }
+    .report-card-new .report-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-md);
+      padding-top: var(--space-sm);
+      border-top: 1px solid rgba(0,119,182,0.1);
+      font-size: 0.8rem;
+      color: var(--neutral-500);
+    }
+
+    /* =========================================
+       FAQ ACCORDION — NEUMORPHIC ITEMS
+       ========================================= */
+    .faq-section { background: linear-gradient(180deg, #e4edf5 0%, #d6e3ef 100%); }
+    .faq-section .section-header h2 { color: var(--primary-800); }
+    .faq-section .section-header h2::after { background: linear-gradient(to right, var(--saffron-500), var(--aqua-300)); }
+    
+    .faq-container { max-width: 800px; margin: 0 auto; }
+    
+    /* ========== NEUMORPHIC FAQ ITEMS ========== */
+    .faq-item {
+      background: var(--neu-bg);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-sm);
+      box-shadow: 
+        7px 7px 16px var(--neu-shadow-dark),
+        -7px -7px 16px var(--neu-shadow-light);
+      overflow: hidden;
+      transition: box-shadow var(--t-normal);
+      border: 1px solid rgba(255,255,255,0.55);
+      border-left: 4px solid var(--primary-300);
+    }
+    .faq-item:hover { 
+      box-shadow: 
+        10px 10px 22px var(--neu-shadow-dark),
+        -10px -10px 22px var(--neu-shadow-light);
+    }
+    .faq-item.open { 
+      box-shadow: 
+        11px 11px 26px var(--neu-shadow-dark),
+        -11px -11px 26px var(--neu-shadow-light);
+      border-left-color: var(--primary-600); 
+    }
+    .faq-question {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-lg) var(--space-md);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--primary-800);
+      transition: background var(--t-fast);
+    }
+    .faq-question:hover { background: rgba(255,255,255,0.3); }
+    .faq-question .faq-icon {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      color: var(--primary-600);
+      transition: transform var(--t-normal);
+      font-size: 0.9rem;
+      box-shadow: 
+        3px 3px 7px var(--neu-shadow-dark-inset),
+        -3px -3px 7px var(--neu-shadow-light-inset);
+    }
+    .faq-item.open .faq-icon {
+      transform: rotate(180deg);
+      background: var(--primary-600);
+      color: var(--white);
+    }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height var(--t-normal);
+    }
+    .faq-answer-inner {
+      padding: 0 var(--space-md) var(--space-lg);
+      font-size: 0.95rem;
+      color: var(--neutral-600);
+      line-height: 1.6;
+    }
+
+    /* =========================================
+       CONTACT SECTION — GLASSMORPHIC FORM
+       ========================================= */
+    .contact-section { background: linear-gradient(180deg, #eaf2f9 0%, #e4edf5 100%); }
+    .contact-section .section-header h2 { color: var(--primary-800); }
+    .contact-section .section-header h2::after { background: linear-gradient(to right, var(--saffron-500), var(--aqua-300)); }
+    
+    .contact-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--space-xxl); }
+    .contact-info-card {
+      background: linear-gradient(160deg, #005f8a 0%, #003f5c 50%, #001f3f 100%);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 
+        0 12px 40px rgba(0,31,63,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .contact-info-card::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -20%;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(0,180,216,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .contact-info-card h3 { color: var(--white); font-size: 1.3rem; margin-bottom: var(--space-lg); }
+    .contact-detail-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      position: relative;
+      z-index: 1;
+    }
+    .contact-detail-item .ci-icon {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--aqua-300);
+      font-size: 1.1rem;
+      box-shadow: inset 2px 2px 6px rgba(0,0,0,0.2), inset -2px -2px 6px rgba(255,255,255,0.1);
+    }
+    .contact-detail-item .ci-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 2px; }
+    .contact-detail-item .ci-value { font-size: 0.95rem; color: var(--white); font-weight: 500; margin-bottom: 0; }
+    
+    /* ========== GLASSMORPHIC CONTACT FORM ========== */
+    .contact-form-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      border: 1px solid var(--glass-border);
+      box-shadow: 
+        var(--glass-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+    .contact-form-card h3 { font-size: 1.3rem; color: var(--primary-800); margin-bottom: var(--space-lg); }
+    .form-group { margin-bottom: var(--space-lg); }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--primary-800); margin-bottom: var(--space-xs); }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--neutral-700);
+      background: rgba(255, 255, 255, 0.55);
+      transition: border-color var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 
+        3px 3px 8px rgba(163, 177, 198, 0.3),
+        -3px -3px 8px rgba(255, 255, 255, 0.8);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-600);
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 
+        0 0 0 4px rgba(0,119,182,0.12),
+        3px 3px 8px rgba(163, 177, 198, 0.3),
+        -3px -3px 8px rgba(255, 255, 255, 0.8);
+    }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .form-submit-btn {
+      background: linear-gradient(135deg, var(--primary-600), var(--aqua-500));
+      color: var(--white);
+      padding: 14px 32px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all var(--t-normal);
+      box-shadow: 
+        0 6px 20px rgba(0, 119, 182, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+    .form-submit-btn:hover {
+      background: linear-gradient(135deg, var(--primary-800), var(--aqua-700));
+      transform: translateY(-2px);
+      box-shadow: 
+        0 10px 32px rgba(0, 180, 216, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+    .form-success-msg {
+      display: none;
+      padding: var(--space-md);
+      background: var(--status-safe-bg);
+      border-radius: var(--radius-sm);
+      color: var(--status-safe);
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: var(--space-md);
+      border: 1px solid var(--status-safe);
+    }
+    .form-success-msg.show { display: block; animation: fadeInUp 0.4s ease; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* =========================================
+       UNIQUE MEGA FOOTER
+       ========================================= */
+    .unique-footer {
+      background: linear-gradient(180deg, var(--primary-800) 0%, var(--primary-900) 40%, #001428 100%);
+      color: var(--neutral-300);
+      position: relative;
+      overflow: hidden;
+      padding-top: 80px;
+    }
+    .unique-footer::before {
+      content: '';
+      position: absolute;
+      top: 10%; right: -5%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(0,180,216,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .unique-footer::after {
+      content: '';
+      position: absolute;
+      bottom: -20%; left: -5%;
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(255,153,51,0.05) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .footer-wave {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      overflow: hidden;
+      line-height: 0;
+      transform: rotate(180deg);
+    }
+
+    .footer-wave svg {
+      position: relative;
+      display: block;
+      width: calc(100% + 1.3px);
+      height: 60px;
+    }
+
+    .footer-wave .shape-fill {
+      fill: #eaf2f9;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.5fr;
+      gap: var(--space-xl);
+      margin-bottom: var(--space-xxl);
+      position: relative;
+      z-index: 2;
+    }
+    .footer-brand-col {
+      padding-right: var(--space-lg);
+    }
+
+    .footer-brand-col h3 {
+      color: var(--white);
+      font-size: 1.5rem;
+      margin-bottom: var(--space-sm);
+    }
+
+    .footer-brand-col p {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+      margin-bottom: var(--space-md);
+    }
+
+    .footer-logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: var(--space-md);
+    }
+
+    .footer-logo-wrap svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .footer-col h4 {
+      color: var(--white);
+      font-size: 1rem;
+      margin-bottom: var(--space-md);
+      position: relative;
+      padding-bottom: 8px;
+    }
+
+    .footer-col h4::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 30px;
+      height: 2px;
+      background: var(--saffron-500);
+    }
+
+    .footer-col ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 10px;
+    }
+
+    .footer-col ul li a {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.9rem;
+      transition: all var(--t-fast);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-col ul li a:hover {
+      color: var(--aqua-300);
+      transform: translateX(5px);
+    }
+
+    .footer-newsletter p {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: var(--space-sm);
+    }
+
+    .newsletter-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .newsletter-form input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all var(--t-fast);
+    }
+
+    .newsletter-form input::placeholder {
+      color: var(--neutral-500);
+    }
+
+    .newsletter-form input:focus {
+      outline: none;
+      border-color: var(--aqua-300);
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 0 0 3px rgba(0,180,216,0.1);
+    }
+
+    .newsletter-form button {
+      background: linear-gradient(135deg, var(--aqua-300), var(--aqua-500));
+      color: var(--primary-900);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      transition: all var(--t-fast);
+    }
+
+    .newsletter-form button:hover {
+      background: var(--white);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,180,216,0.3);
+    }
+
+    .footer-bottom-new {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding: var(--space-lg) 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      position: relative;
+      z-index: 2;
+    }
+
+    .footer-bottom-new p {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 0;
+    }
+
+    .footer-legal-links {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+
+    .footer-legal-links a {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.85rem;
+      transition: color var(--t-fast);
+    }
+
+    .footer-legal-links a:hover {
+      color: var(--aqua-300);
+    }
+
+    /* Back to top button */
+    .back-to-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary-600);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--t-normal);
+      box-shadow: var(--shadow-lg);
+      font-size: 1.2rem;
+    }
+    .back-to-top.show { opacity: 1; visibility: visible; }
+    .back-to-top:hover { background: var(--primary-800); transform: translateY(-3px); }
+
+    /* =========================================
+       RESPONSIVE DESIGN
+       ========================================= */
+    @media (max-width: 1024px) {
+      .about-grid-new { grid-template-columns: 1fr; text-align: center; }
+      .about-list { display: flex; flex-direction: column; align-items: center; }
+      .dashboard-grid-new { grid-template-columns: repeat(3, 1fr); }
+      .reports-grid-new { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .nat-stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .schemes-grid { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-charts-row { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      .mobile-menu-button { display: flex; align-items: center; }
+      nav ul#nav-menu { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); flex-direction: column; align-items: stretch; padding: var(--space-md); gap: var(--space-xs); box-shadow: var(--shadow-lg); border-top: 1px solid var(--neutral-200); }
+      nav ul#nav-menu.active { display: flex; }
+      nav ul#nav-menu li { width: 100%; }
+      nav ul#nav-menu a { display: block; padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); }
+      nav a.active { border-bottom: none; background: var(--primary-50); border-radius: var(--radius-sm); }
+      .login-btn { text-align: center; margin-top: var(--space-xs); animation: login-glow-pulse 1.6s ease-in-out infinite; }
+      .login-hint-arrow { display: none !important; }
+      .govt-bar-inner { flex-direction: column; gap: var(--space-xs); text-align: center; }
+      .govt-bar-right { flex-wrap: wrap; justify-content: center; }
+      .logo-subtitle, .logo-subtitle-sm { display: none; }
+      .logo-name { font-size: 1.25rem; }
+      .hero-section { height: 480px; }
+      .hero-content h2 { font-size: 2rem; }
+      .hero-content { text-align: center; margin: 0 auto; }
+      .hero-shade { width: 100%; background: rgba(0,0,0,0.5); }
+      .map-wrapper-new { flex-direction: column; }
+      .map-controls-new { flex: none; flex-direction: row; flex-wrap: wrap; }
+      .schemes-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .dashboard-grid-new { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom-new { flex-direction: column; text-align: center; }
+      .footer-legal-links { justify-content: center; }
+      .dashboard-state-selector { flex-direction: column; }
+      .dashboard-state-selector select { width: 100%; }
+      .nat-stats-grid { grid-template-columns: 1fr; }
+      .reports-grid-new { grid-template-columns: 1fr; }
+      .back-to-top { bottom: 20px; right: 20px; }
+    }
+
+    @media (max-width: 480px) {
+      section { padding: var(--space-xxl) 0; }
+      .dashboard-grid-new { grid-template-columns: 1fr; }
+      .container { padding: 0 var(--space-sm); }
+      .hero-cta { flex-direction: column; }
+      .hero-cta .cta-button { width: 100%; }
+    }
+  </style>
+  <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+</head>
+<body>
+
+<!-- ============ SCROLLING NOTICE BAR ============ -->
+<div class="notice-bar">
+  <div class="notice-label">NOTICE</div>
+  <div class="notice-ticker">
+    <div class="notice-track" id="notice-track">
+      <span class="notice-item"><span class="notice-new">NEW</span> Jal Jeevan Mission crosses 19 crore rural household tap connections &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item"><span class="notice-new">NEW</span> Water-quality testing protocols revised as per BIS IS:10500:2024 amendments &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item">National Jal Jeevan Mission awards 2025 — nominations now open for best-performing districts &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item">New sensor-based real-time monitoring pilot launched in 5 states &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item"><span class="notice-new">NEW</span> Helpline 1916 now available 24x7 for water-quality complaints &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item"><span class="notice-new">NEW</span> Jal Jeevan Mission crosses 19 crore rural household tap connections &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item"><span class="notice-new">NEW</span> Water-quality testing protocols revised as per BIS IS:10500:2024 amendments &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item">National Jal Jeevan Mission awards 2025 — nominations now open for best-performing districts &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item">New sensor-based real-time monitoring pilot launched in 5 states &nbsp;&bull;&nbsp;</span>
+      <span class="notice-item"><span class="notice-new">NEW</span> Helpline 1916 now available 24x7 for water-quality complaints &nbsp;&bull;&nbsp;</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GOVERNMENT IDENTITY BAR ============ -->
+<div class="govt-bar">
+  <div class="container govt-bar-inner">
+    <div class="govt-bar-left">
+      <span class="govt-flag" aria-hidden="true">🇮🇳</span>
+      <span class="govt-bar-text">भारत सरकार | <span class="goi-en">GOVERNMENT OF INDIA</span></span>
+    </div>
+    <div class="govt-bar-right">
+      <a href="https://jalshakti-dowr.gov.in/" target="_blank" rel="noopener">Ministry of Jal Shakti</a>
+      <span class="govt-divider">|</span>
+      <a href="https://jaljeevanmission.gov.in/" target="_blank" rel="noopener">Jal Jeevan Mission</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN HEADER ============ -->
+<header id="main-header">
+  <div class="container header-inner">
+    <div class="logo-block">
+      <div class="logo-emblem" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="52" height="52" role="img" aria-label="JalRakshak logo">
+          <circle cx="32" cy="32" r="30" fill="#003366" />
+          <path d="M32 14 C24 26, 20 34, 20 40 a12 12 0 0 0 24 0 c0-6-4-14-12-26z" fill="#00b4d8"/>
+          <circle cx="32" cy="38" r="5" fill="#ffffff" opacity="0.85"/>
+        </svg>
+      </div>
+      <div class="logo-titles">
+        <h1 class="logo-name">JalRakshak</h1>
+        <p class="logo-subtitle">जल शक्ति मंत्रालय | Ministry of Jal Shakti</p>
+        <p class="logo-subtitle-sm">पेयजल एवं स्वच्छता विभाग | Dept. of Drinking Water &amp; Sanitation</p>
+      </div>
+    </div>
+
+    <nav>
+      <button id="menu-toggle" class="mobile-menu-button" aria-label="Toggle navigation" aria-expanded="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
+        </svg>
+      </button>
+      <ul id="nav-menu">
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#about-jjm">About JJM</a></li>
+        <li><a href="#water-quality">Water Quality</a></li>
+        <li><a href="#monitoring-map">Monitoring Map</a></li>
+        <li><a href="#reports">Reports</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li style="position: relative;">
+          <a href="login.html" class="login-btn" id="login-nav-btn">Login</a>
+          <div class="login-hint-arrow" id="login-hint" style="display:none;">
+            <span class="hint-text">Click here for main dashboard</span>
+            <svg viewBox="0 0 24 24"><path d="M12 2 L12 18 M5 11 L12 18 L19 11" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ HERO SLIDER ============ -->
+  <section id="home" class="hero-section">
+    <div class="hero-slider" id="hero-slider">
+      <div class="hero-slide active" style="background-image:url('https://images.pexels.com/photos/37268660/pexels-photo-37268660.jpeg?auto=compress&cs=tinysrgb&w=1600')">
+        <div class="hero-shade"></div>
+        <div class="container hero-content">
+          <h2>हर घर जल, सुरक्षित जल</h2>
+          <p class="hero-subtitle">Safe Water, Every Household, Every Day</p>
+          <p class="hero-desc">A young girl drinks from a newly installed tap — bringing safe, tested drinking water to every rural household through real-time monitoring and community participation.</p>
+          <div class="hero-cta">
+            <a href="#water-quality" class="cta-button primary">Explore Dashboard</a>
+            <a href="#monitoring-map" class="cta-button secondary">View Monitoring Map</a>
+          </div>
+        </div>
+      </div>
+      <div class="hero-slide" style="background-image:url('https://images.pexels.com/photos/5294114/pexels-photo-5294114.jpeg?auto=compress&cs=tinysrgb&w=1600')">
+        <div class="hero-shade"></div>
+        <div class="container hero-content">
+          <h2>स्वच्छ जल, स्वस्थ जीवन</h2>
+          <p class="hero-subtitle">Clean Water, Healthy Lives</p>
+          <p class="hero-desc">Clean, tested drinking water flowing from every tap — monitored for quality at the source and at the household level to ensure BIS compliance.</p>
+          <div class="hero-cta">
+            <a href="#water-quality" class="cta-button primary">Explore Dashboard</a>
+            <a href="#monitoring-map" class="cta-button secondary">View Monitoring Map</a>
+          </div>
+        </div>
+      </div>
+      <div class="hero-slide" style="background-image:url('https://images.pexels.com/photos/27644579/pexels-photo-27644579.jpeg?auto=compress&cs=tinysrgb&w=1600')">
+        <div class="hero-shade"></div>
+        <div class="container hero-content">
+          <h2>स्रोत संरक्षण, सतत आपूर्ति</h2>
+          <p class="hero-subtitle">Source Conservation, Sustainable Supply</p>
+          <p class="hero-desc">Protecting our rivers, reservoirs, and water infrastructure for sustainable drinking-water supply across India — because every drop counts.</p>
+          <div class="hero-cta">
+            <a href="#water-quality" class="cta-button primary">Explore Dashboard</a>
+            <a href="#monitoring-map" class="cta-button secondary">View Monitoring Map</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="slider-nav prev" id="slider-prev" aria-label="Previous slide">&#10094;</button>
+    <button class="slider-nav next" id="slider-next" aria-label="Next slide">&#10095;</button>
+    <div class="slider-indicators" id="slider-indicators"></div>
+    <button class="slider-pause" id="slider-pause" aria-label="Pause slideshow">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1"><rect x="7" y="5" width="3" height="14"/><rect x="14" y="5" width="3" height="14"/></svg>
+    </button>
+  </section>
+
+  <!-- ============ ABOUT JJM ============ -->
+  <section id="about-jjm" class="about-jjm-section reveal">
+    <div class="container">
+      <div class="about-grid-new">
+        <div class="about-text-content">
+          <h2 style="font-size: 2rem; color: var(--saffron-600); margin-bottom: var(--space-lg);">Jal Jeevan Mission</h2>
+          <p>Jal Jeevan Mission is envisioned to provide safe and adequate drinking water through individual household tap connections by 2024 to all households in rural India. The programme will also implement source sustainability measures as mandatory elements, such as recharge and reuse through grey water management, water conservation, rain water harvesting.</p>
+          <p>The Jal Jeevan Mission will be based on a community approach to water and will include extensive Information, Education and communication as a key component of the mission. JJM looks to create a <em>jan andolan</em> for water, thereby making it everyone's priority.</p>
+          
+          <ul class="about-list">
+            <li>Vision Statement</li>
+            <li>Mission Statement</li>
+            <li>Objectives</li>
+            <li>Components under JJM</li>
+          </ul>
+        </div>
+
+        <div class="circular-data-viz">
+          <div class="circle-wrapper">
+            <div class="circle-inner">
+              <h4>Tap Water Supply in households (HHs)</h4>
+              <div class="big-number">15,83,69,510</div>
+              <div class="date-text">16/10/2026</div>
+              <div class="percentage">81.81 %</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NATIONAL STATISTICS ============ -->
+  <section id="national-stats" class="nat-stats-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>National Progress at a Glance</h2>
+        <p>Key milestones achieved under the Jal Jeevan Mission across India.</p>
+      </div>
+      <div class="nat-stats-grid">
+        <div class="nat-stat-card">
+          <div class="stat-icon"><i class="fas fa-home"></i></div>
+          <div class="stat-number" data-target="1934" data-suffix=" Cr">0</div>
+          <div class="stat-label">Household Tap Connections</div>
+          <div class="stat-sub">+12.3 L this month</div>
+        </div>
+        <div class="nat-stat-card">
+          <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+          <div class="stat-number" data-target="8181" data-suffix="%" data-divide="100">0</div>
+          <div class="stat-label">Rural HH Coverage</div>
+          <div class="stat-sub">Target: 100%</div>
+        </div>
+        <div class="nat-stat-card">
+          <div class="stat-icon"><i class="fas fa-vial"></i></div>
+          <div class="stat-number" data-target="425" data-suffix=" L">0</div>
+          <div class="stat-label">Water Samples Tested</div>
+          <div class="stat-sub">FY 2025-26</div>
+        </div>
+        <div class="nat-stat-card">
+          <div class="stat-icon"><i class="fas fa-map-marked-alt"></i></div>
+          <div class="stat-number" data-target="2829" data-suffix="" data-divide="100">0</div>
+          <div class="stat-label">Districts Covered</div>
+          <div class="stat-sub">Out of 736</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GUIDELINES / MANUALS ============ -->
+  <section id="guidelines" class="guidelines-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>Guidelines / Manuals</h2>
+        <p>Official documents, frameworks, and technical reports for the Jal Jeevan Mission.</p>
+      </div>
+    </div>
+    
+    <div class="marquee-wrapper">
+      <div class="marquee-track">
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=400&auto=format&fit=crop" alt="Guideline 1">
+          <div class="card-content">
+            <h4>Reforms in rural drinking water supply - Jal Jeevan Mission (Har Ghar Jal)</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1538300342682-cf57afb97285?q=80&w=400&auto=format&fit=crop" alt="Guideline 2">
+          <div class="card-content">
+            <h4>Drinking Water Quality Monitoring & Surveillance Framework</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1594398901394-4e34939a4fd0?q=80&w=400&auto=format&fit=crop" alt="Guideline 3">
+          <div class="card-content">
+            <h4>Jal Jeevan Mission Booklet</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1581093458791-9f302e6d4d6c?q=80&w=400&auto=format&fit=crop" alt="Guideline 4">
+          <div class="card-content">
+            <h4>Manual for the utilisation of 15th Finance Commission tied grant to RLBs/ PRIs</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=400&auto=format&fit=crop" alt="Guideline 5">
+          <div class="card-content">
+            <h4>Technical and Expert Committee Report on measurement and monitoring</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=400&auto=format&fit=crop" alt="Guideline 6">
+          <div class="card-content">
+            <h4>Guidelines for Capacity Building by Key Resource Centres (KRC)</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=400&auto=format&fit=crop" alt="Guideline 1">
+          <div class="card-content">
+            <h4>Reforms in rural drinking water supply - Jal Jeevan Mission (Har Ghar Jal)</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1538300342682-cf57afb97285?q=80&w=400&auto=format&fit=crop" alt="Guideline 2">
+          <div class="card-content">
+            <h4>Drinking Water Quality Monitoring & Surveillance Framework</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1594398901394-4e34939a4fd0?q=80&w=400&auto=format&fit=crop" alt="Guideline 3">
+          <div class="card-content">
+            <h4>Jal Jeevan Mission Booklet</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1581093458791-9f302e6d4d6c?q=80&w=400&auto=format&fit=crop" alt="Guideline 4">
+          <div class="card-content">
+            <h4>Manual for the utilisation of 15th Finance Commission tied grant to RLBs/ PRIs</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=400&auto=format&fit=crop" alt="Guideline 5">
+          <div class="card-content">
+            <h4>Technical and Expert Committee Report on measurement and monitoring</h4>
+          </div>
+        </div>
+        <div class="guideline-card">
+          <img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=400&auto=format&fit=crop" alt="Guideline 6">
+          <div class="card-content">
+            <h4>Guidelines for Capacity Building by Key Resource Centres (KRC)</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WATER QUALITY DASHBOARD ============ -->
+  <section id="water-quality" class="dashboard-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>Water-Quality Dashboard Preview</h2>
+        <p>Select a state to view simulated water-quality parameters based on BIS IS:10500 standards.</p>
+      </div>
+
+      <div class="dashboard-state-selector">
+        <label for="state-select" style="font-weight: 600; color: var(--primary-800);">Select State:</label>
+        <select id="state-select">
+          <option value="up">Uttar Pradesh</option>
+          <option value="mh">Maharashtra</option>
+          <option value="tn">Tamil Nadu</option>
+          <option value="wb">West Bengal</option>
+          <option value="rj">Rajasthan</option>
+          <option value="ka">Karnataka</option>
+          <option value="gj">Gujarat</option>
+          <option value="mp">Madhya Pradesh</option>
+          <option value="br">Bihar</option>
+          <option value="ap">Andhra Pradesh</option>
+          <option value="tg">Telangana</option>
+          <option value="kl">Kerala</option>
+          <option value="od">Odisha</option>
+          <option value="pb">Punjab</option>
+          <option value="hr">Haryana</option>
+          <option value="as">Assam</option>
+          <option value="jh">Jharkhand</option>
+          <option value="ct">Chhattisgarh</option>
+          <option value="ut">Uttarakhand</option>
+          <option value="hp">Himachal Pradesh</option>
+        </select>
+      </div>
+
+      <div class="dashboard-grid-new" id="dashboard-cards">
+        <div class="param-card-new" id="card-ph">
+          <div class="label">pH Level</div>
+          <div class="value" id="val-ph">7.2</div>
+          <div class="unit">pH units</div>
+          <div class="status safe" id="status-ph">Safe</div>
+        </div>
+        <div class="param-card-new" id="card-alkalinity">
+          <div class="label">Alkalinity</div>
+          <div class="value" id="val-alkalinity">120</div>
+          <div class="unit">mg/L</div>
+          <div class="status safe" id="status-alkalinity">Safe</div>
+        </div>
+        <div class="param-card-new" id="card-tds">
+          <div class="label">TDS</div>
+          <div class="value" id="val-tds">312</div>
+          <div class="unit">mg/L</div>
+          <div class="status safe" id="status-tds">Safe</div>
+        </div>
+        <div class="param-card-new" id="card-turbidity">
+          <div class="label">Turbidity</div>
+          <div class="value" id="val-turbidity">4.8</div>
+          <div class="unit">NTU</div>
+          <div class="status warning" id="status-turbidity">Warning</div>
+        </div>
+        <div class="param-card-new" id="card-temperature">
+          <div class="label">Temperature</div>
+          <div class="value" id="val-temperature">24.5</div>
+          <div class="unit">&deg;C</div>
+          <div class="status safe" id="status-temperature">Safe</div>
+        </div>
+      </div>
+
+      <div class="dashboard-charts-row">
+        <div class="chart-card">
+          <h3><i class="fas fa-chart-line" style="color: var(--primary-500);"></i> &nbsp;Parameter Trends (Last 12 Months)</h3>
+          <div class="chart-canvas-wrapper">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3><i class="fas fa-chart-pie" style="color: var(--saffron-500);"></i> &nbsp;Status Distribution</h3>
+          <div class="chart-canvas-wrapper">
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SCHEMES & PROGRAMS ============ -->
+  <section id="schemes" class="schemes-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>Schemes &amp; Programs</h2>
+        <p>Key initiatives under the Ministry of Jal Shakti for water security and sustainability.</p>
+      </div>
+      <div class="schemes-grid">
+        <div class="scheme-card">
+          <div class="scheme-icon"><i class="fas fa-faucet"></i></div>
+          <h4>Har Ghar Jal</h4>
+          <p>Functional household tap connection to every rural household ensuring potable water in adequate quantity.</p>
+          <div class="scheme-progress-bar"><div class="scheme-progress-fill" data-width="81.8"></div></div>
+          <div class="scheme-progress-label"><span>Progress</span><span class="pct">81.8%</span></div>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-icon"><i class="fas fa-flask"></i></div>
+          <h4>Water Quality Testing</h4>
+          <p>Regular testing at village, block, and district levels using field test kits and NABL-accredited laboratories.</p>
+          <div class="scheme-progress-bar"><div class="scheme-progress-fill" data-width="67.5"></div></div>
+          <div class="scheme-progress-label"><span>Progress</span><span class="pct">67.5%</span></div>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-icon"><i class="fas fa-satellite-dish"></i></div>
+          <h4>Sensor-Based Monitoring</h4>
+          <p>Real-time IoT sensors for flow, pressure, and quality monitoring of village water supply schemes.</p>
+          <div class="scheme-progress-bar"><div class="scheme-progress-fill" data-width="34.2"></div></div>
+          <div class="scheme-progress-label"><span>Progress</span><span class="pct">34.2%</span></div>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-icon"><i class="fas fa-leaf"></i></div>
+          <h4>Grey Water Management</h4>
+          <p>Treatment and reuse of grey water for agriculture, gardening, and groundwater recharge in rural areas.</p>
+          <div class="scheme-progress-bar"><div class="scheme-progress-fill" data-width="52.1"></div></div>
+          <div class="scheme-progress-label"><span>Progress</span><span class="pct">52.1%</span></div>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-icon"><i class="fas fa-cloud-rain"></i></div>
+          <h4>Rain Water Harvesting</h4>
+          <p>Mandatory rooftop rainwater harvesting structures in public buildings and individual households.</p>
+          <div class="scheme-progress-bar"><div class="scheme-progress-fill" data-width="45.6"></div></div>
+          <div class="scheme-progress-label"><span>Progress</span><span class="pct">45.6%</span></div>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-icon"><i class="fas fa-users"></i></div>
+          <h4>Community Participation</h4>
+          <p>Village Water & Sanitation Committees (VWSCs) for community-driven planning, implementation, and O&amp;M.</p>
+          <div class="scheme-progress-bar"><div class="scheme-progress-fill" data-width="73.9"></div></div>
+          <div class="scheme-progress-label"><span>Progress</span><span class="pct">73.9%</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATE-WISE PROGRESS TABLE ============ -->
+  <section id="state-progress" class="state-table-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>State-Wise Progress</h2>
+        <p>Tap connection coverage and functional status across major states (Illustrative data).</p>
+      </div>
+      <div class="table-search">
+        <input type="text" id="state-table-search" placeholder="Search state..." aria-label="Search state">
+      </div>
+      <div class="table-wrapper">
+        <table class="state-table" id="state-progress-table">
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Total HH (Lakh)</th>
+              <th>Tap Connections (Lakh)</th>
+              <th>Coverage %</th>
+              <th>Functional %</th>
+              <th>Quality Tests (Lakh)</th>
+            </tr>
+          </thead>
+          <tbody id="state-table-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MONITORING MAP ============ -->
+  <section id="monitoring-map" class="map-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>Interactive Monitoring Map</h2>
+        <p>Illustrative monitoring locations across India with sample water-quality readings. Use filters to narrow down stations.</p>
+      </div>
+
+      <div class="map-wrapper-new">
+        <div class="map-controls-new">
+          <h3><i class="fas fa-filter" style="color: var(--primary-500);"></i> Filters</h3>
+          <div>
+            <label style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:4px;">Status</label>
+            <select id="map-status-filter">
+              <option value="all">All Stations</option>
+              <option value="safe">Safe</option>
+              <option value="warning">Warning</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:4px;">Region</label>
+            <select id="map-region-filter">
+              <option value="all">All Regions</option>
+              <option value="north">North India</option>
+              <option value="south">South India</option>
+              <option value="east">East & NE India</option>
+              <option value="west">West India</option>
+              <option value="central">Central India</option>
+            </select>
+          </div>
+          <div style="border-top: 1px solid rgba(255,255,255,0.5); padding-top: var(--space-md);">
+            <h4 style="font-size:0.9rem; margin-bottom:var(--space-sm);">Legend</h4>
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem; margin-bottom:6px;"><span style="width:12px; height:12px; border-radius:50%; background:#2ecc71;"></span> Safe</div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem; margin-bottom:6px;"><span style="width:12px; height:12px; border-radius:50%; background:#f39c12;"></span> Warning</div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem;"><span style="width:12px; height:12px; border-radius:50%; background:#e74c3c;"></span> Critical</div>
+          </div>
+          <div class="map-info-box" id="map-info-box">
+            <div class="info-title"><i class="fas fa-info-circle"></i> Station Summary</div>
+            <div class="info-text">Click on any station marker for detailed water quality readings.</div>
+            <div style="margin-top: var(--space-sm);">
+              <div class="map-stat-row"><span class="label">Total Stations</span><span class="val" id="map-total-count">18</span></div>
+              <div class="map-stat-row"><span class="label">Safe</span><span class="val" id="map-safe-count" style="color:var(--status-safe);">11</span></div>
+              <div class="map-stat-row"><span class="label">Warning</span><span class="val" id="map-warning-count" style="color:var(--status-warning);">4</span></div>
+              <div class="map-stat-row"><span class="label">Critical</span><span class="val" id="map-critical-count" style="color:var(--status-critical);">3</span></div>
+            </div>
+          </div>
+        </div>
+        <div id="map" class="map-canvas-new"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REPORTS ============ -->
+  <section id="reports" class="reports-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>Reports &amp; Insights</h2>
+        <p>Water-quality reports, monitoring summaries, and state-wise coverage documents.</p>
+      </div>
+      <div class="reports-grid-new">
+        <div class="report-card-new">
+          <span class="report-badge national">National</span>
+          <h4>National Water Quality Report Q2 2025-26</h4>
+          <p>Comprehensive analysis of water quality parameters across all 28 monitored states and 8 UTs. Includes BIS compliance rates, contamination hotspots, and trend analysis.</p>
+          <div class="report-meta">
+            <span><i class="far fa-calendar"></i> Oct 2025</span>
+            <a href="#" style="font-weight:600; font-size:0.9rem;"><i class="fas fa-download"></i> Download PDF</a>
+          </div>
+        </div>
+        <div class="report-card-new">
+          <span class="report-badge state">State-wise</span>
+          <h4>State-wise Coverage Progress 2025-26</h4>
+          <p>Detailed breakdown of household tap connections, functional household taps, and district-level achievement data for all states.</p>
+          <div class="report-meta">
+            <span><i class="far fa-calendar"></i> Sep 2025</span>
+            <a href="#" style="font-weight:600; font-size:0.9rem;"><i class="fas fa-chart-bar"></i> View Dashboard</a>
+          </div>
+        </div>
+        <div class="report-card-new">
+          <span class="report-badge infra">Infrastructure</span>
+          <h4>Infrastructure Status Report</h4>
+          <p>Assessment of water treatment plants, pipeline networks, overhead storage tanks, and sensor-based monitoring infrastructure across districts.</p>
+          <div class="report-meta">
+            <span><i class="far fa-calendar"></i> Aug 2025</span>
+            <a href="#" style="font-weight:600; font-size:0.9rem;"><i class="fas fa-file-alt"></i> Read More</a>
+          </div>
+        </div>
+        <div class="report-card-new">
+          <span class="report-badge national">Annual</span>
+          <h4>Annual Outcome Budget 2024-25</h4>
+          <p>Year-end review of expenditure, physical achievements, and outcome indicators under the Jal Jeevan Mission and related schemes.</p>
+          <div class="report-meta">
+            <span><i class="far fa-calendar"></i> Jul 2025</span>
+            <a href="#" style="font-weight:600; font-size:0.9rem;"><i class="fas fa-download"></i> Download PDF</a>
+          </div>
+        </div>
+        <div class="report-card-new">
+          <span class="report-badge state">State-wise</span>
+          <h4>Arsenic & Fluoride Contamination Report</h4>
+          <p>State-wise mapping of arsenic and fluoride-affected habitations, mitigation measures undertaken, and safe water alternatives provided.</p>
+          <div class="report-meta">
+            <span><i class="far fa-calendar"></i> Jun 2025</span>
+            <a href="#" style="font-weight:600; font-size:0.9rem;"><i class="fas fa-download"></i> Download PDF</a>
+          </div>
+        </div>
+        <div class="report-card-new">
+          <span class="report-badge infra">Infrastructure</span>
+          <h4>Sensor Network Deployment Report</h4>
+          <p>Progress of IoT-based real-time monitoring sensor deployment across village-level water supply schemes in pilot states.</p>
+          <div class="report-meta">
+            <span><i class="far fa-calendar"></i> May 2025</span>
+            <a href="#" style="font-weight:600; font-size:0.9rem;"><i class="fas fa-file-alt"></i> Read More</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ACCORDION ============ -->
+  <section id="faq" class="faq-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>Frequently Asked Questions</h2>
+        <p>Common queries about the Jal Jeevan Mission and water quality monitoring.</p>
+      </div>
+      <div class="faq-container">
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What is the Jal Jeevan Mission (JJM)?</span>
+            <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Jal Jeevan Mission is a flagship programme of the Government of India aimed at providing functional household tap connections (FHTC) to every rural household by 2024, ensuring safe and adequate drinking water supply. The mission also focuses on source sustainability, water quality monitoring, and community participation.</p>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>How is water quality monitored under JJM?</span>
+            <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Water quality is monitored at multiple levels: village-level testing using Field Test Kits (FTKs), block-level laboratory testing, and district/state-level NABL-accredited laboratories. Parameters tested include pH, turbidity, TDS, alkalinity, iron, fluoride, arsenic, nitrate, and bacteriological contamination as per BIS IS:10500 standards.</p>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What is BIS IS:10500 and why is it important?</span>
+            <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>BIS IS:10500 is the Indian Standard for drinking water quality prescribed by the Bureau of Indian Standards. It defines acceptable and permissible limits for physical, chemical, and biological parameters. All drinking water supplied under JJM must comply with these standards to ensure public health safety.</p>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>How can I report a water quality issue in my village?</span>
+            <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>You can report water quality issues through the JalRakshak grievance form on this page, by calling the toll-free helpline 1916, or by contacting your local Village Water & Sanitation Committee (VWSC). Issues are routed to the concerned Public Health Engineering (PHE) department for remedial action.</p>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What is a Village Water & Sanitation Committee (VWSC)?</span>
+            <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>A VWSC is a community-level body constituted under JJM to plan, implement, operate, and maintain village water supply schemes. It comprises elected representatives from the Gram Panchayat, women members, and community leaders, ensuring community ownership and sustainability of water infrastructure.</p>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">
+            <span>What are the common contaminants found in Indian drinking water?</span>
+            <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Common contaminants include arsenic (found in West Bengal, Bihar, Uttar Pradesh), fluoride (Rajasthan, Telangana, Karnataka), iron (Assam, Odisha, Chhattisgarh), salinity (Gujarat, Rajasthan), and bacteriological contamination. JJM prioritises safe water supply in habitations affected by these contaminants.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT / GRIEVANCE ============ -->
+  <section id="contact" class="contact-section reveal">
+    <div class="container">
+      <div class="section-header">
+        <h2>Contact &amp; Grievance Redressal</h2>
+        <p>Reach out to us for water quality complaints, queries, or feedback regarding the Jal Jeevan Mission.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info-card">
+          <h3>Get in Touch</h3>
+          <div class="contact-detail-item">
+            <div class="ci-icon"><i class="fas fa-phone-alt"></i></div>
+            <div>
+              <div class="ci-label">Toll-Free Helpline</div>
+              <p class="ci-value">1916 (Available 24x7)</p>
+            </div>
+          </div>
+          <div class="contact-detail-item">
+            <div class="ci-icon"><i class="fas fa-envelope"></i></div>
+            <div>
+              <div class="ci-label">Email</div>
+              <p class="ci-value">ddws@jalshakti.gov.in</p>
+            </div>
+          </div>
+          <div class="contact-detail-item">
+            <div class="ci-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div>
+              <div class="ci-label">Address</div>
+              <p class="ci-value">Department of Drinking Water &amp; Sanitation, Ministry of Jal Shakti, 3rd Floor, Pandit Deendayal Antyodaya Bhavan, CGO Complex, Lodhi Road, New Delhi - 110003</p>
+            </div>
+          </div>
+          <div class="contact-detail-item">
+            <div class="ci-icon"><i class="fas fa-clock"></i></div>
+            <div>
+              <div class="ci-label">Office Hours</div>
+              <p class="ci-value">Monday - Friday, 9:00 AM - 5:30 PM</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-form-card">
+          <h3>Submit a Grievance / Query</h3>
+          <form id="grievance-form">
+            <div class="form-group">
+              <label for="g-name">Full Name *</label>
+              <input type="text" id="g-name" required placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+              <label for="g-email">Email Address *</label>
+              <input type="email" id="g-email" required placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+              <label for="g-state">State *</label>
+              <select id="g-state" required>
+                <option value="">Select State</option>
+                <option>Uttar Pradesh</option><option>Maharashtra</option><option>Tamil Nadu</option>
+                <option>West Bengal</option><option>Rajasthan</option><option>Karnataka</option>
+                <option>Gujarat</option><option>Madhya Pradesh</option><option>Bihar</option>
+                <option>Andhra Pradesh</option><option>Telangana</option><option>Kerala</option>
+                <option>Odisha</option><option>Punjab</option><option>Haryana</option>
+                <option>Assam</option><option>Jharkhand</option><option>Chhattisgarh</option>
+                <option>Uttarakhand</option><option>Himachal Pradesh</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="g-type">Grievance Type *</label>
+              <select id="g-type" required>
+                <option value="">Select Type</option>
+                <option>Water Quality Issue</option>
+                <option>No Water Supply</option>
+                <option>Irregular Supply</option>
+                <option>Infrastructure Damage</option>
+                <option>Scheme Related Query</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="g-message">Description *</label>
+              <textarea id="g-message" required placeholder="Describe your issue in detail..."></textarea>
+            </div>
+            <button type="submit" class="form-submit-btn"><i class="fas fa-paper-plane"></i> &nbsp;Submit Grievance</button>
+            <div class="form-success-msg" id="form-success">
+              <i class="fas fa-check-circle"></i> Your grievance has been submitted successfully. Reference ID: <strong id="ref-id"></strong>. You will be contacted within 48 hours.
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ UNIQUE MEGA FOOTER ============ -->
+<footer class="unique-footer">
+  <div class="footer-wave">
+    <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+    </svg>
+  </div>
+
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand-col">
+        <div class="footer-logo-wrap">
+          <svg viewBox="0 0 64 64" role="img" aria-label="JalRakshak logo">
+            <circle cx="32" cy="32" r="30" fill="#003366" />
+            <path d="M32 14 C24 26, 20 34, 20 40 a12 12 0 0 0 24 0 c0-6-4-14-12-26z" fill="#00b4d8"/>
+            <circle cx="32" cy="38" r="5" fill="#ffffff" opacity="0.85"/>
+          </svg>
+          <h3>JalRakshak</h3>
+        </div>
+        <p>जल शक्ति मंत्रालय | Ministry of Jal Shakti<br>पेयजल एवं स्वच्छता विभाग | Dept. of Drinking Water &amp; Sanitation</p>
+        <p style="font-size: 0.8rem; opacity: 0.7;">JalRakshak is a proposed platform concept inspired by the Jal Jeevan Mission. It is not an officially endorsed government service.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#home"><i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i> Home</a></li>
+          <li><a href="#about-jjm"><i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i> About JJM</a></li>
+          <li><a href="#water-quality"><i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i> Water Quality</a></li>
+          <li><a href="#monitoring-map"><i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i> Monitoring Map</a></li>
+          <li><a href="#reports"><i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i> Reports</a></li>
+          <li><a href="#faq"><i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i> FAQ</a></li>
+          <li><a href="#contact"><i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i> Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="https://jaljeevanmission.gov.in/" target="_blank"><i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i> JJM Portal</a></li>
+          <li><a href="https://jalshakti-dowr.gov.in/" target="_blank"><i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i> Ministry of Jal Shakti</a></li>
+          <li><a href="https://imisjalshakti.gov.in/" target="_blank"><i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i> IMIS Data</a></li>
+          <li><a href="https://www.bis.gov.in/" target="_blank"><i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i> BIS Standards</a></li>
+          <li><a href="https://nwm.gov.in/" target="_blank"><i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i> National Water Mission</a></li>
+          <li><a href="https://cgwb.gov.in/" target="_blank"><i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i> CGWB</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-newsletter">
+        <h4>Stay Updated</h4>
+        <p>Subscribe to receive the latest water quality reports and mission updates.</p>
+        <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Subscribed successfully (Demo)!');">
+          <input type="email" placeholder="Enter your email address" required>
+          <button type="submit"><i class="fas fa-paper-plane"></i></button>
+        </form>
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+          <a href="#" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.6); font-size: 1rem; transition: all var(--t-fast);"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.6); font-size: 1rem; transition: all var(--t-fast);"><i class="fab fa-twitter"></i></a>
+          <a href="#" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.6); font-size: 1rem; transition: all var(--t-fast);"><i class="fab fa-youtube"></i></a>
+          <a href="#" style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.6); font-size: 1rem; transition: all var(--t-fast);"><i class="fab fa-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom-new">
+      <p>&copy; 2025 JalRakshak — A concept platform for the Jal Jeevan Mission. All rights reserved.</p>
+      <div class="footer-legal-links">
+        <a href="#">Accessibility</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Sitemap</a>
+        <a href="#">Help</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ BACK TO TOP ============ -->
+<button class="back-to-top" id="back-to-top" aria-label="Back to top">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- ============ JAVASCRIPT ============ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+  // ============ MOBILE MENU TOGGLE ============
+  const menuToggle = document.getElementById('menu-toggle');
+  const navMenu = document.getElementById('nav-menu');
+  if (menuToggle && navMenu) {
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+      const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', !expanded);
+    });
+  }
+
+  // ============ HERO SLIDER ============
+  const slides = document.querySelectorAll('.hero-slide');
+  const dotsContainer = document.getElementById('slider-indicators');
+  const prevBtn = document.getElementById('slider-prev');
+  const nextBtn = document.getElementById('slider-next');
+  const pauseBtn = document.getElementById('slider-pause');
+  let currentSlide = 0;
+  let slideInterval;
+  let isPaused = false;
+
+  slides.forEach((_, index) => {
+    const dot = document.createElement('div');
+    dot.classList.add('slider-dot');
+    if (index === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => goToSlide(index));
+    dotsContainer.appendChild(dot);
+  });
+
+  const dots = document.querySelectorAll('.slider-dot');
+
+  function goToSlide(n) {
+    slides[currentSlide].classList.remove('active');
+    dots[currentSlide].classList.remove('active');
+    currentSlide = (n + slides.length) % slides.length;
+    slides[currentSlide].classList.add('active');
+    dots[currentSlide].classList.add('active');
+  }
+
+  function nextSlide() { goToSlide(currentSlide + 1); }
+  function prevSlide() { goToSlide(currentSlide - 1); }
+
+  function startAutoSlide() {
+    if (!isPaused) { slideInterval = setInterval(nextSlide, 5000); }
+  }
+  function stopAutoSlide() { clearInterval(slideInterval); }
+
+  nextBtn.addEventListener('click', () => { stopAutoSlide(); nextSlide(); startAutoSlide(); });
+  prevBtn.addEventListener('click', () => { stopAutoSlide(); prevSlide(); startAutoSlide(); });
+
+  pauseBtn.addEventListener('click', () => {
+    isPaused = !isPaused;
+    if (isPaused) {
+      stopAutoSlide();
+      pauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+      pauseBtn.setAttribute('aria-label', 'Play slideshow');
+    } else {
+      startAutoSlide();
+      pauseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="7" y="5" width="3" height="14"/><rect x="14" y="5" width="3" height="14"/></svg>';
+      pauseBtn.setAttribute('aria-label', 'Pause slideshow');
+    }
+  });
+
+  startAutoSlide();
+
+  // ============ SCROLL REVEAL ============
+  const revealElements = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealElements.forEach(el => revealObserver.observe(el));
+
+  // ============ BACK TO TOP ============
+  const backToTopBtn = document.getElementById('back-to-top');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 500) { backToTopBtn.classList.add('show'); }
+    else { backToTopBtn.classList.remove('show'); }
+  });
+  backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ============ LOGIN BUTTON — FIRST VISIT ATTENTION ============
+  const loginBtn = document.getElementById('login-nav-btn');
+  const loginHint = document.getElementById('login-hint');
+  
+  if (loginBtn && loginHint) {
+    if (!sessionStorage.getItem('loginHintSeen')) {
+      loginHint.style.display = 'flex';
+      loginBtn.addEventListener('click', () => {
+        sessionStorage.setItem('loginHintSeen', '1');
+      });
+      loginBtn.addEventListener('mouseenter', () => {
+        sessionStorage.setItem('loginHintSeen', '1');
+        loginHint.classList.add('hidden');
+        setTimeout(() => loginBtn.classList.add('glow-dismissed'), 400);
+      }, { once: true });
+      setTimeout(() => {
+        if (!sessionStorage.getItem('loginHintSeen')) {
+          sessionStorage.setItem('loginHintSeen', '1');
+          loginHint.classList.add('hidden');
+          setTimeout(() => loginBtn.classList.add('glow-dismissed'), 400);
+        }
+      }, 10000);
+    } else {
+      loginBtn.classList.add('glow-dismissed');
+    }
+  }
+
+  // ============ ANIMATED COUNTERS ============
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseFloat(el.dataset.target);
+        const suffix = el.dataset.suffix || '';
+        const divide = parseFloat(el.dataset.divide) || 1;
+        const duration = 2000;
+        const startTime = performance.now();
+        const finalValue = target / divide;
+
+        function animateCounter(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = finalValue * eased;
+          if (suffix === '%' && divide === 100) {
+            el.textContent = current.toFixed(2) + '%';
+          } else if (target >= 1000) {
+            el.textContent = Math.floor(current).toLocaleString('en-IN') + suffix;
+          } else {
+            el.textContent = current.toFixed(1) + suffix;
+          }
+          if (progress < 1) requestAnimationFrame(animateCounter);
+          else el.textContent = finalValue.toLocaleString('en-IN', {maximumFractionDigits: suffix==='%'?2:0}) + suffix;
+        }
+        requestAnimationFrame(animateCounter);
+        counterObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.stat-number').forEach(el => counterObserver.observe(el));
+
+  // ============ SCHEME PROGRESS BARS ============
+  const schemeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const bars = entry.target.querySelectorAll('.scheme-progress-fill');
+        bars.forEach(bar => {
+          const width = bar.dataset.width;
+          setTimeout(() => { bar.style.width = width + '%'; }, 100);
+        });
+        schemeObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  const schemesSection = document.querySelector('.schemes-grid');
+  if (schemesSection) schemeObserver.observe(schemesSection);
+
+  // ============ CHART.JS — TREND & STATUS CHARTS ============
+  let trendChart = null;
+  let statusChart = null;
+
+  function generateTrendData(state) {
+    const base = stateData[state];
+    const labels = ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+    const phData = labels.map((_, i) => {
+      const variation = Math.sin(i * 0.5) * 0.3;
+      return parseFloat((base.ph + variation).toFixed(1));
+    });
+    const tdsData = labels.map((_, i) => {
+      const variation = Math.cos(i * 0.4) * 25;
+      return Math.round(base.tds + variation);
+    });
+    const turbData = labels.map((_, i) => {
+      const variation = Math.sin(i * 0.6) * 0.8;
+      return parseFloat((base.turbidity + variation).toFixed(1));
+    });
+    return { labels, phData, tdsData, turbData };
+  }
+
+  function initCharts(state) {
+    const trendData = generateTrendData(state);
+    const data = stateData[state];
+
+    let safe = 0, warning = 0, critical = 0;
+    if (data.ph >= 7.0 && data.ph <= 8.0) safe++; else if (data.ph >= 6.5 && data.ph <= 8.5) warning++; else critical++;
+    if (data.alkalinity <= 160) safe++; else if (data.alkalinity <= 200) warning++; else critical++;
+    if (data.tds <= 400) safe++; else if (data.tds <= 500) warning++; else critical++;
+    if (data.turbidity <= 3) safe++; else if (data.turbidity <= 5) warning++; else critical++;
+    if (data.temperature >= 15 && data.temperature <= 28) safe++; else if ((data.temperature >= 10 && data.temperature < 15) || (data.temperature > 28 && data.temperature <= 30)) warning++; else critical++;
+
+    if (trendChart) trendChart.destroy();
+    if (statusChart) statusChart.destroy();
+
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    trendChart = new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: trendData.labels,
+        datasets: [
+          {
+            label: 'pH',
+            data: trendData.phData,
+            borderColor: '#0077b6',
+            backgroundColor: 'rgba(0,119,182,0.08)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y',
+          },
+          {
+            label: 'TDS (mg/L)',
+            data: trendData.tdsData,
+            borderColor: '#ff9933',
+            backgroundColor: 'rgba(255,153,51,0.08)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y1',
+          },
+          {
+            label: 'Turbidity (NTU)',
+            data: trendData.turbData,
+            borderColor: '#00b4d8',
+            backgroundColor: 'rgba(0,180,216,0.08)',
+            tension: 0.4,
+            fill: true,
+            yAxisID: 'y',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 11 }, usePointStyle: true, padding: 15 } },
+          tooltip: { backgroundColor: 'rgba(0,31,63,0.9)', padding: 12, cornerRadius: 8 }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { position: 'left', grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } },
+          y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    statusChart = new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Safe', 'Warning', 'Critical'],
+        datasets: [{
+          data: [safe, warning, critical],
+          backgroundColor: ['#2ecc71', '#f39c12', '#e74c3c'],
+          borderWidth: 3,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 12 }, usePointStyle: true, padding: 15 } },
+          tooltip: { backgroundColor: 'rgba(0,31,63,0.9)', padding: 12, cornerRadius: 8 }
+        }
+      }
+    });
+  }
+
+  // ============ STATE DATA (Dashboard) ============
+  const stateData = {
+    up: { ph: 7.2, alkalinity: 120, tds: 312, turbidity: 4.8, temperature: 24.5 },
+    mh: { ph: 7.0, alkalinity: 110, tds: 280, turbidity: 3.5, temperature: 26.0 },
+    tn: { ph: 8.6, alkalinity: 150, tds: 450, turbidity: 4.8, temperature: 28.5 },
+    wb: { ph: 6.2, alkalinity: 90, tds: 520, turbidity: 8.5, temperature: 27.0 },
+    rj: { ph: 8.5, alkalinity: 180, tds: 600, turbidity: 4.9, temperature: 25.5 },
+    ka: { ph: 7.4, alkalinity: 130, tds: 350, turbidity: 1.8, temperature: 23.0 },
+    gj: { ph: 7.8, alkalinity: 140, tds: 400, turbidity: 3.0, temperature: 26.5 },
+    mp: { ph: 7.5, alkalinity: 115, tds: 290, turbidity: 4.2, temperature: 24.0 },
+    br: { ph: 7.1, alkalinity: 100, tds: 310, turbidity: 5.5, temperature: 25.0 },
+    ap: { ph: 7.9, alkalinity: 160, tds: 480, turbidity: 2.5, temperature: 28.0 },
+    tg: { ph: 7.6, alkalinity: 145, tds: 420, turbidity: 3.8, temperature: 27.5 },
+    kl: { ph: 6.8, alkalinity: 80, tds: 250, turbidity: 2.0, temperature: 22.0 },
+    od: { ph: 7.3, alkalinity: 125, tds: 330, turbidity: 4.0, temperature: 25.8 },
+    pb: { ph: 7.7, alkalinity: 135, tds: 370, turbidity: 3.2, temperature: 24.2 },
+    hr: { ph: 8.0, alkalinity: 155, tds: 440, turbidity: 3.6, temperature: 25.2 },
+    as: { ph: 6.5, alkalinity: 85, tds: 270, turbidity: 5.0, temperature: 23.5 },
+    jh: { ph: 7.1, alkalinity: 105, tds: 300, turbidity: 4.5, temperature: 24.8 },
+    ct: { ph: 7.2, alkalinity: 112, tds: 320, turbidity: 3.9, temperature: 25.0 },
+    ut: { ph: 7.0, alkalinity: 95, tds: 260, turbidity: 2.8, temperature: 20.5 },
+    hp: { ph: 7.1, alkalinity: 98, tds: 240, turbidity: 2.2, temperature: 18.0 }
+  };
+
+  function updateDashboard(state) {
+    const data = stateData[state];
+    const cards = document.querySelectorAll('.param-card-new');
+    cards.forEach(card => card.classList.add('data-changing'));
+
+    setTimeout(() => {
+      document.getElementById('val-ph').textContent = data.ph;
+      document.getElementById('val-alkalinity').textContent = data.alkalinity;
+      document.getElementById('val-tds').textContent = data.tds;
+      document.getElementById('val-turbidity').textContent = data.turbidity;
+      document.getElementById('val-temperature').textContent = data.temperature;
+
+      const phEl = document.getElementById('status-ph');
+      if (data.ph < 6.5 || data.ph > 8.5) { phEl.className = 'status critical'; phEl.textContent = 'Critical'; }
+      else if (data.ph < 7.0 || data.ph > 8.0) { phEl.className = 'status warning'; phEl.textContent = 'Warning'; }
+      else { phEl.className = 'status safe'; phEl.textContent = 'Safe'; }
+
+      const alkEl = document.getElementById('status-alkalinity');
+      if (data.alkalinity > 200) { alkEl.className = 'status critical'; alkEl.textContent = 'Critical'; }
+      else if (data.alkalinity > 160) { alkEl.className = 'status warning'; alkEl.textContent = 'Warning'; }
+      else { alkEl.className = 'status safe'; alkEl.textContent = 'Safe'; }
+
+      const tdsEl = document.getElementById('status-tds');
+      if (data.tds > 500) { tdsEl.className = 'status critical'; tdsEl.textContent = 'Critical'; }
+      else if (data.tds > 400) { tdsEl.className = 'status warning'; tdsEl.textContent = 'Warning'; }
+      else { tdsEl.className = 'status safe'; tdsEl.textContent = 'Safe'; }
+
+      const turbEl = document.getElementById('status-turbidity');
+      if (data.turbidity > 5) { turbEl.className = 'status critical'; turbEl.textContent = 'Critical'; }
+      else if (data.turbidity > 3) { turbEl.className = 'status warning'; turbEl.textContent = 'Warning'; }
+      else { turbEl.className = 'status safe'; turbEl.textContent = 'Safe'; }
+
+      const tempEl = document.getElementById('status-temperature');
+      if (data.temperature > 30 || data.temperature < 10) { tempEl.className = 'status critical'; tempEl.textContent = 'Critical'; }
+      else if (data.temperature > 28 || data.temperature < 15) { tempEl.className = 'status warning'; tempEl.textContent = 'Warning'; }
+      else { tempEl.className = 'status safe'; tempEl.textContent = 'Safe'; }
+
+      cards.forEach(card => card.classList.remove('data-changing'));
+
+      initCharts(state);
+    }, 300);
+  }
+
+  const stateSelect = document.getElementById('state-select');
+  if (stateSelect) {
+    stateSelect.addEventListener('change', (e) => { updateDashboard(e.target.value); });
+    updateDashboard('up');
+  }
+
+  // ============ STATE PROGRESS TABLE ============
+  const stateProgressData = [
+    { name: 'Uttar Pradesh', totalHH: 2.99, tapConn: 2.46, functional: 78.5, tests: 32.4 },
+    { name: 'Maharashtra', totalHH: 1.48, tapConn: 1.35, functional: 88.2, tests: 28.1 },
+    { name: 'Bihar', totalHH: 1.79, tapConn: 1.62, functional: 75.8, tests: 19.6 },
+    { name: 'West Bengal', totalHH: 1.68, tapConn: 1.38, functional: 72.0, tests: 22.3 },
+    { name: 'Rajasthan', totalHH: 1.03, tapConn: 0.84, functional: 81.2, tests: 18.9 },
+    { name: 'Madhya Pradesh', totalHH: 1.12, tapConn: 0.98, functional: 85.1, tests: 15.7 },
+    { name: 'Tamil Nadu', totalHH: 0.88, tapConn: 0.82, functional: 92.5, tests: 24.0 },
+    { name: 'Karnataka', totalHH: 0.91, tapConn: 0.83, functional: 90.0, tests: 20.4 },
+    { name: 'Gujarat', totalHH: 0.62, tapConn: 0.59, functional: 94.2, tests: 14.1 },
+    { name: 'Andhra Pradesh', totalHH: 0.72, tapConn: 0.65, functional: 89.8, tests: 16.8 },
+    { name: 'Telangana', totalHH: 0.54, tapConn: 0.49, functional: 90.5, tests: 12.2 },
+    { name: 'Odisha', totalHH: 0.85, tapConn: 0.65, functional: 74.0, tests: 17.5 },
+    { name: 'Kerala', totalHH: 0.56, tapConn: 0.52, functional: 91.8, tests: 18.0 },
+    { name: 'Punjab', totalHH: 0.42, tapConn: 0.39, functional: 92.0, tests: 11.3 },
+    { name: 'Haryana', totalHH: 0.48, tapConn: 0.45, functional: 93.5, tests: 10.8 },
+    { name: 'Jharkhand', totalHH: 0.68, tapConn: 0.50, functional: 71.0, tests: 9.4 },
+    { name: 'Chhattisgarh', totalHH: 0.56, tapConn: 0.46, functional: 80.5, tests: 8.7 },
+    { name: 'Assam', totalHH: 0.65, tapConn: 0.45, functional: 68.0, tests: 7.9 },
+    { name: 'Uttarakhand', totalHH: 0.23, tapConn: 0.21, functional: 90.0, tests: 6.5 },
+    { name: 'Himachal Pradesh', totalHH: 0.17, tapConn: 0.16, functional: 95.5, tests: 5.2 }
+  ];
+
+  function renderStateTable(filterText) {
+    const tbody = document.getElementById('state-table-body');
+    if (!tbody) return;
+    const filtered = stateProgressData.filter(s =>
+      s.name.toLowerCase().includes((filterText || '').toLowerCase())
+    );
+    tbody.innerHTML = filtered.map(s => {
+      const coverage = ((s.tapConn / s.totalHH) * 100).toFixed(1);
+      return `<tr>
+        <td class="state-name">${s.name}</td>
+        <td>${s.totalHH.toFixed(2)}</td>
+        <td>${s.tapConn.toFixed(2)}</td>
+        <td><span class="mini-bar"><span class="mini-bar-fill" style="width:${coverage}%"></span></span>${coverage}%</td>
+        <td><span class="mini-bar"><span class="mini-bar-fill" style="width:${s.functional}%"></span></span>${s.functional}%</td>
+        <td>${s.tests.toFixed(1)}</td>
+      </tr>`;
+    }).join('');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 24px; color: var(--neutral-500);">No states found matching your search.</td></tr>';
+    }
+  }
+
+  renderStateTable('');
+  const tableSearchInput = document.getElementById('state-table-search');
+  if (tableSearchInput) {
+    tableSearchInput.addEventListener('input', (e) => renderStateTable(e.target.value));
+  }
+
+  // ============ FAQ ACCORDION ============
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const question = item.querySelector('.faq-question');
+    const answer = item.querySelector('.faq-answer');
+    question.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(openItem => {
+        openItem.classList.remove('open');
+        openItem.querySelector('.faq-answer').style.maxHeight = '0';
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+      }
+    });
+  });
+
+  // ============ GRIEVANCE FORM ============
+  const grievanceForm = document.getElementById('grievance-form');
+  if (grievanceForm) {
+    grievanceForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const refId = 'JJM-' + Date.now().toString().slice(-8);
+      document.getElementById('ref-id').textContent = refId;
+      document.getElementById('form-success').classList.add('show');
+      grievanceForm.reset();
+      setTimeout(() => {
+        document.getElementById('form-success').classList.remove('show');
+      }, 8000);
+    });
+  }
+
+  // ============ INTERACTIVE MAP ============
+  document.addEventListener('DOMContentLoaded', function() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+
+    const map = L.map('map').setView([20.5937, 78.9629], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const stations = [
+      { lat: 28.6139, lng: 77.2090, name: "New Delhi Station", status: "safe", region: "north", ph: 7.2, turbidity: 2.1, tds: 310, temp: 24 },
+      { lat: 19.0760, lng: 72.8777, name: "Mumbai Station", status: "safe", region: "west", ph: 7.0, turbidity: 3.5, tds: 280, temp: 26 },
+      { lat: 13.0827, lng: 80.2707, name: "Chennai Station", status: "warning", region: "south", ph: 8.6, turbidity: 4.8, tds: 450, temp: 28.5 },
+      { lat: 22.5726, lng: 88.3639, name: "Kolkata Station", status: "critical", region: "east", ph: 6.2, turbidity: 8.5, tds: 520, temp: 27 },
+      { lat: 12.9716, lng: 77.5946, name: "Bangalore Station", status: "safe", region: "south", ph: 7.4, turbidity: 1.8, tds: 350, temp: 23 },
+      { lat: 26.9124, lng: 75.7873, name: "Jaipur Station", status: "warning", region: "north", ph: 8.5, turbidity: 4.9, tds: 600, temp: 25.5 },
+      { lat: 23.2593, lng: 77.4124, name: "Bhopal Station", status: "safe", region: "central", ph: 7.5, turbidity: 2.8, tds: 290, temp: 24 },
+      { lat: 26.1445, lng: 91.7362, name: "Guwahati Station", status: "warning", region: "east", ph: 6.5, turbidity: 5.0, tds: 270, temp: 23.5 },
+      { lat: 18.5204, lng: 73.8567, name: "Pune Station", status: "safe", region: "west", ph: 7.1, turbidity: 2.5, tds: 300, temp: 25 },
+      { lat: 17.3850, lng: 78.4867, name: "Hyderabad Station", status: "safe", region: "south", ph: 7.6, turbidity: 3.8, tds: 420, temp: 27.5 },
+      { lat: 23.0225, lng: 72.5714, name: "Ahmedabad Station", status: "safe", region: "west", ph: 7.8, turbidity: 3.0, tds: 400, temp: 26.5 },
+      { lat: 25.3176, lng: 82.9739, name: "Varanasi Station", status: "warning", region: "north", ph: 7.2, turbidity: 4.8, tds: 312, temp: 24.5 },
+      { lat: 27.1765, lng: 78.0081, name: "Agra Station", status: "safe", region: "north", ph: 7.3, turbidity: 2.9, tds: 305, temp: 25 },
+      { lat: 21.2514, lng: 81.6296, name: "Raipur Station", status: "safe", region: "central", ph: 7.2, turbidity: 3.9, tds: 320, temp: 25 },
+      { lat: 24.7136, lng: 80.9918, name: "Rewa Station", status: "critical", region: "central", ph: 5.8, turbidity: 6.2, tds: 580, temp: 26 },
+      { lat: 15.2993, lng: 74.1240, name: "Panaji Station", status: "safe", region: "west", ph: 7.0, turbidity: 1.5, tds: 240, temp: 27 },
+      { lat: 11.0168, lng: 76.9558, name: "Coimbatore Station", status: "safe", region: "south", ph: 7.1, turbidity: 2.0, tds: 260, temp: 26 },
+      { lat: 25.5941, lng: 85.1376, name: "Patna Station", status: "critical", region: "east", ph: 6.0, turbidity: 7.2, tds: 510, temp: 25 }
+    ];
+
+    let mapMarkers = [];
+
+    function getMarkerColor(status) {
+      return status === 'safe' ? '#2ecc71' : status === 'warning' ? '#f39c12' : '#e74c3c';
+    }
+
+    function renderMarkers() {
+      const statusFilter = document.getElementById('map-status-filter').value;
+      const regionFilter = document.getElementById('map-region-filter').value;
+
+      mapMarkers.forEach(m => map.removeLayer(m));
+      mapMarkers = [];
+
+      let safeCount = 0, warningCount = 0, criticalCount = 0;
+
+      stations.forEach(station => {
+        if (statusFilter !== 'all' && station.status !== statusFilter) return;
+        if (regionFilter !== 'all' && station.region !== regionFilter) return;
+
+        if (station.status === 'safe') safeCount++;
+        else if (station.status === 'warning') warningCount++;
+        else criticalCount++;
+
+        const color = getMarkerColor(station.status);
+        const marker = L.circleMarker([station.lat, station.lng], {
+          radius: 10,
+          fillColor: color,
+          color: '#fff',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).addTo(map);
+
+        marker.bindPopup(`
+          <div style="font-family: 'Inter', sans-serif; min-width: 180px;">
+            <h4 style="margin:0 0 8px; color: #003366; font-size: 1rem;">${station.name}</h4>
+            <p style="margin:0 0 4px; font-size:0.85rem;">Status: <span style="color:${color}; font-weight:700; text-transform:uppercase;">${station.status}</span></p>
+            <p style="margin:0 0 4px; font-size:0.85rem;">pH: <strong>${station.ph}</strong></p>
+            <p style="margin:0 0 4px; font-size:0.85rem;">Turbidity: <strong>${station.turbidity} NTU</strong></p>
+            <p style="margin:0 0 4px; font-size:0.85rem;">TDS: <strong>${station.tds} mg/L</strong></p>
+            <p style="margin:0; font-size:0.85rem;">Temperature: <strong>${station.temp}&deg;C</strong></p>
+            <p style="margin:4px 0 0; font-size:0.75rem; color:#718096;">Region: ${station.region.charAt(0).toUpperCase() + station.region.slice(1)} India</p>
+          </div>
+        `);
+
+        mapMarkers.push(marker);
+      });
+
+      const total = safeCount + warningCount + criticalCount;
+      document.getElementById('map-total-count').textContent = total;
+      document.getElementById('map-safe-count').textContent = safeCount;
+      document.getElementById('map-warning-count').textContent = warningCount;
+      document.getElementById('map-critical-count').textContent = criticalCount;
+    }
+
+    renderMarkers();
+
+    document.getElementById('map-status-filter').addEventListener('change', renderMarkers);
+    document.getElementById('map-region-filter').addEventListener('change', renderMarkers);
+  });
+</script>
+</body>
+</html>
