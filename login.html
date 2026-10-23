@@ -672,21 +672,39 @@
             }
         }
 
+        // --- Mock Credentials (login works only with these exact details) ---
+        const MOCK_CREDENTIALS = {
+            'Admin':   { username: 'admin',   password: 'admin123',   url: "https://jaljeevanmission.gov.in/" },
+            'Officer': { username: 'officer', password: 'officer123', url: "https://ejalshakti.gov.in/" },
+            'User':    { username: 'user',    password: 'user123',    url: "https://jaljeevanmission.gov.in/citizen-corner" }
+        };
+
+        // --- Inline Error Message (shown only when credentials are wrong) ---
+        function showLoginError(message) {
+            let errorBox = document.getElementById('loginError');
+            if (!errorBox) {
+                errorBox = document.createElement('div');
+                errorBox.id = 'loginError';
+                errorBox.innerHTML = '<i class="fas fa-exclamation-circle"></i><span></span>';
+                errorBox.style.cssText = "background-color:#fef2f2;border-left:4px solid #dc2626;padding:12px 15px;margin-bottom:20px;border-radius:4px;font-size:0.85rem;color:#b91c1c;font-family:'Noto Sans Devanagari',sans-serif;display:flex;align-items:center;gap:8px;";
+                document.getElementById('loginForm').parentNode.insertBefore(errorBox, document.getElementById('loginForm'));
+            }
+            errorBox.querySelector('span').textContent = message;
+        }
+
         // --- Form Submission & Redirection ---
         function handleLogin(event) {
             event.preventDefault(); // Prevent actual form submission
 
-            // Mock Redirection URLs based on the selected role
-            const adminUrl = "https://jaljeevanmission.gov.in/"; 
-            const officerUrl = "https://ejalshakti.gov.in/"; 
-            const userUrl = "https://user-dashboard-jal.netlify.app/"; 
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const expected = MOCK_CREDENTIALS[currentRole];
 
-            if (currentRole === 'Admin') {
-                window.location.href = adminUrl;
-            } else if (currentRole === 'Officer') {
-                window.location.href = officerUrl;
-            } else if (currentRole === 'User') {
-                window.location.href = userUrl;
+            // Redirect only on an exact username + password match for the selected role
+            if (username === expected.username && password === expected.password) {
+                window.location.href = expected.url;
+            } else {
+                showLoginError('Invalid ' + currentRole + ' username or password. Please use the exact credentials shown above.');
             }
         }
     </script>
